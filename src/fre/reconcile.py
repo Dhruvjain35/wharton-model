@@ -72,7 +72,7 @@ def reconcile(ds: Dataset, fetch=primary_statements, fetch_notes=None) -> list[R
             records.append(ReconRecord(fact=key, outcome="not-checked", expected=f.value))
             continue
         src = f.sources[0]
-        months = None if f.period_start is None else 12
+        months = None if f.period_start is None else round((f.period_end - f.period_start).days / 30.44)
         hits = []
         own = ds.annual_filings.get(f.fiscal_label)
         filings = [src.accession] + ([own] if own and own != src.accession else [])

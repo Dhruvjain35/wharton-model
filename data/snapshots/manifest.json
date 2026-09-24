@@ -239,6 +239,11 @@
     "retrieved_at": "2026-09-24T05:36:39+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/789019/000156459022026876/R113.htm"
   },
+  "0ce7d41184242095": {
+    "bytes": 138152,
+    "retrieved_at": "2026-09-24T05:40:08+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000071/R2.htm"
+  },
   "0d3bbabe84aa024f": {
     "bytes": 14616,
     "retrieved_at": "2026-09-24T05:26:32+00:00",
@@ -679,6 +684,16 @@
     "retrieved_at": "2026-09-24T05:25:39+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/R109.htm"
   },
+  "28470d524a15e6f5": {
+    "bytes": 7706,
+    "retrieved_at": "2026-09-24T05:45:06+00:00",
+    "url": "https://api.nasdaq.com/api/quote/GOOGL/historical?assetclass=stocks&fromdate=2026-06-20&limit=400"
+  },
+  "286f12bb46a08620": {
+    "bytes": 95499,
+    "retrieved_at": "2026-09-24T05:40:08+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000071/R4.htm"
+  },
   "28aebd1e6760a966": {
     "bytes": 20050,
     "retrieved_at": "2026-09-24T05:28:10+00:00",
@@ -718,6 +733,11 @@
     "bytes": 7877,
     "retrieved_at": "2026-09-24T05:24:42+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R92.htm"
+  },
+  "2aa9fff39c4fe153": {
+    "bytes": 101296,
+    "retrieved_at": "2026-09-24T05:40:09+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000071/R9.htm"
   },
   "2ab945a41fc754fe": {
     "bytes": 31977,
@@ -1659,6 +1679,11 @@
     "retrieved_at": "2026-09-24T05:24:30+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R48.htm"
   },
+  "618e9847fce9adec": {
+    "bytes": 109883,
+    "retrieved_at": "2026-09-24T05:40:08+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000071/R7.htm"
+  },
   "6195249646a8b30c": {
     "bytes": 9121,
     "retrieved_at": "2026-09-24T05:25:19+00:00",
@@ -1869,6 +1894,11 @@
     "retrieved_at": "2026-09-24T05:25:16+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204422000019/R59.htm"
   },
+  "6ddae260b740f8d6": {
+    "bytes": 50989,
+    "retrieved_at": "2026-09-24T05:40:08+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000071/FilingSummary.xml"
+  },
   "6de8e7368ba2a5cd": {
     "bytes": 14742,
     "retrieved_at": "2026-09-24T05:28:17+00:00",
@@ -1995,6 +2025,9 @@
     "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json"
   },
   "7535bace5e1c8d66": {
+    "also_urls": [
+      "https://api.nasdaq.com/api/quote/GOOGL/historical?assetclass=stocks&fromdate=2026-09-13&limit=400"
+    ],
     "bytes": 1171,
     "retrieved_at": "2026-09-24T05:31:59+00:00",
     "url": "https://api.nasdaq.com/api/quote/GOOGL/historical?assetclass=stocks&fromdate=2026-09-13&todate=2026-09-23&limit=400"
@@ -2240,6 +2273,9 @@
     "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/R77.htm"
   },
   "82d3e3afd98872c0": {
+    "also_urls": [
+      "https://api.nasdaq.com/api/quote/GOOGM/historical?assetclass=stocks&fromdate=2026-09-13&limit=400"
+    ],
     "bytes": 1126,
     "retrieved_at": "2026-09-24T05:32:03+00:00",
     "url": "https://api.nasdaq.com/api/quote/GOOGM/historical?assetclass=stocks&fromdate=2026-09-13&todate=2026-09-23&limit=400"
@@ -2509,6 +2545,11 @@
     "retrieved_at": "2026-09-24T05:25:28+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/R68.htm"
   },
+  "91b8e9866e7cca16": {
+    "bytes": 7307,
+    "retrieved_at": "2026-09-24T05:45:09+00:00",
+    "url": "https://api.nasdaq.com/api/quote/GOOGM/historical?assetclass=stocks&fromdate=2026-06-20&limit=400"
+  },
   "91d799b77bc4775a": {
     "bytes": 31089,
     "retrieved_at": "2026-09-24T05:21:58+00:00",
@@ -2608,6 +2649,11 @@
     "bytes": 47351,
     "retrieved_at": "2026-09-24T05:21:59+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017024087843/R7.htm"
+  },
+  "970b700eefd5ace6": {
+    "bytes": 135,
+    "retrieved_at": "2026-09-24T05:45:22+00:00",
+    "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10&cosd=2026-06-20&coed=2026-06-30"
   },
   "9736d1c7f05854c9": {
     "bytes": 30624,
@@ -2844,6 +2890,11 @@
     "retrieved_at": "2026-09-24T05:26:12+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/R89.htm"
   },
+  "a14042e293aec25f": {
+    "bytes": 7301,
+    "retrieved_at": "2026-09-24T05:45:12+00:00",
+    "url": "https://api.nasdaq.com/api/quote/GOOGN/historical?assetclass=stocks&fromdate=2026-06-20&limit=400"
+  },
   "a1a4063a431b7a3a": {
     "bytes": 41962,
     "retrieved_at": "2026-09-24T05:24:34+00:00",
@@ -2965,6 +3016,9 @@
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/R50.htm"
   },
   "a846896587784fe4": {
+    "also_urls": [
+      "https://api.nasdaq.com/api/quote/GOOGN/historical?assetclass=stocks&fromdate=2026-09-13&limit=400"
+    ],
     "bytes": 1123,
     "retrieved_at": "2026-09-24T05:32:06+00:00",
     "url": "https://api.nasdaq.com/api/quote/GOOGN/historical?assetclass=stocks&fromdate=2026-09-13&todate=2026-09-23&limit=400"
@@ -3649,6 +3703,11 @@
     "retrieved_at": "2026-09-24T05:25:10+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204422000019/R38.htm"
   },
+  "cdfad4cbc6e4e67e": {
+    "bytes": 7688,
+    "retrieved_at": "2026-09-24T05:45:07+00:00",
+    "url": "https://api.nasdaq.com/api/quote/GOOG/historical?assetclass=stocks&fromdate=2026-06-20&limit=400"
+  },
   "cdfdd6f9b98e5556": {
     "bytes": 7553,
     "retrieved_at": "2026-09-24T05:24:19+00:00",
@@ -4085,6 +4144,9 @@
     "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/R57.htm"
   },
   "e3981f87a22344b5": {
+    "also_urls": [
+      "https://api.nasdaq.com/api/quote/GOOG/historical?assetclass=stocks&fromdate=2026-09-13&limit=400"
+    ],
     "bytes": 1164,
     "retrieved_at": "2026-09-24T05:32:01+00:00",
     "url": "https://api.nasdaq.com/api/quote/GOOG/historical?assetclass=stocks&fromdate=2026-09-13&todate=2026-09-23&limit=400"

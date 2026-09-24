@@ -1,0 +1,197 @@
+# Alphabet FCFF valuation inputs.
+#
+# Two kinds of input live here:
+#   sourced:      facts from filings, each with a verbatim quote that `fre value` checks
+#                 against the snapshotted filing text.
+#   assumptions:  judgments. Every one is PROPOSED by the AI with a range and rationale.
+#                 A teammate owns the final values. Nothing here is a recommendation.
+#
+# The evidence table printed by `fre value GOOGL` (history, H1 2026, TTM) is computed from
+# reconciled facts; rationales below point to it rather than retyping numbers.
+
+company: GOOGL
+base_year: FY2025
+forecast_years: 5                  # FY2026-FY2030, end-of-period discounting
+valuation_date: 2026-06-30         # latest 10-Q balance sheet; cash flows discounted from here
+price_date: 2026-09-23             # latest close used for comparison; kept separate from the statement date
+headline_class: GOOGL              # all classes have equal economic rights; per-share value compares to Class A
+listed_classes: [GOOGL, GOOG, GOOGM, GOOGN]
+preferred_listings: [GOOGM, GOOGN]
+
+class_shares:                      # at 2026-06-30, 10-Q balance sheet (quoted below)
+  class_a: {shares: 5.868e+9, priced_as: GOOGL}
+  class_b: {shares: 0.835e+9, priced_as: GOOGL}   # unlisted; convertible 1:1 into Class A, so valued at the Class A price
+  class_c: {shares: 5.527e+9, priced_as: GOOG}
+
+operating_nwc:                     # base-year balance sheet lines; financing items inside them are added back
+  add: [us-gaap:AccountsReceivableNetCurrent, us-gaap:OtherAssetsCurrent]
+  subtract: [us-gaap:AccountsPayableCurrent, us-gaap:EmployeeRelatedLiabilitiesCurrent,
+             us-gaap:AccruedLiabilitiesCurrent, goog:AccruedRevenueShare, us-gaap:ContractWithCustomerLiabilityCurrent]
+  add_back_financing: [debt_lt_current, finance_lease_liability_current]
+
+reverse_bounds:
+  growth: [-0.10, 0.60]
+  margin: [0.00, 0.80]
+  wacc: [0.04, 0.20]
+  terminal_growth: [-0.03, 0.045]
+
+sourced:
+  class_split:
+    value: 12230
+    figure: "12,230 (Class A 5,868 , Class B 835 , Class C 5,527 )"
+    snapshot_id: 1b4e671893d74a58
+    quote: 12,230 (Class A 5,868 , Class B 835 , Class C 5,527 ) shares issued and outstanding
+  pretax_cost_of_debt:
+    value: 0.048
+    figure: "4.80 %"
+    snapshot_id: 1b4e671893d74a58
+    quote: $ 20.0 billion US dollar-denominated notes with a weighted-average coupon rate of 4.80 %
+    note: Q1 2026 USD issuance, 15-year weighted-average maturity. A current market yield would be better; team to confirm.
+  preferred_dividend_rate:
+    value: 0.0625
+    figure: "6.25 %"
+    snapshot_id: 1b4e671893d74a58
+    quote: Dividends are cumulative at an annual rate of 6.25 % on the liquidation preference of $ 1,000 per share
+  preferred_depositary_shares:
+    value: 385.0e+6
+    figure: "385 million"
+    snapshot_id: 1b4e671893d74a58
+    quote: issued an aggregate amount of 385 million Series A and Series B depositary shares
+  preferred_liquidation_per_depositary_share:
+    value: 50.0
+    figure: "$ 50 per depositary share"
+    snapshot_id: 1b4e671893d74a58
+    quote: liquidation preference of $ 1,000 per share ($ 50 per depositary share)
+
+assumptions:
+  growth:
+    value: [0.20, 0.15, 0.12, 0.10, 0.08]
+    low:   [0.14, 0.09, 0.06, 0.05, 0.04]
+    high:  [0.24, 0.20, 0.17, 0.14, 0.11]
+    units: revenue growth, FY2026-FY2030
+    rationale: >-
+      FY2026 anchored below the H1 2026 year-over-year rate in the evidence table, then fading
+      toward the terminal rate. The fade is a judgment, not a forecast from the filings.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  operating_margin:
+    value: [0.33, 0.32, 0.32, 0.32, 0.32]
+    low:   [0.30, 0.27, 0.26, 0.26, 0.26]
+    high:  [0.36, 0.36, 0.36, 0.36, 0.36]
+    units: GAAP operating margin (SBC expensed), FY2026-FY2030
+    rationale: >-
+      Near the TTM margin in the evidence table. Depreciation is rising fast as the capex wave
+      is placed in service, which is why margins are not extended upward in the base case.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  tax_rate:
+    value: 0.17
+    low: 0.14
+    high: 0.21
+    units: operating cash tax rate on EBIT
+    rationale: FY2021-FY2025 effective tax rates in the dossier; 21% is the US federal statutory ceiling.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  capex_pct:
+    value: [0.33, 0.30, 0.25, 0.20, 0.17]
+    low:   [0.28, 0.22, 0.17, 0.14, 0.12]
+    high:  [0.38, 0.36, 0.33, 0.28, 0.24]
+    units: cash capex / revenue, FY2026-FY2030
+    rationale: >-
+      FY2026 near the H1 2026 capex intensity, then easing. How long intensity stays elevated
+      is the central question for this company; see the capex break-even and adverse scenario.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  dna_pct:
+    value: [0.065, 0.09, 0.11, 0.12, 0.125]
+    low:   [0.060, 0.075, 0.085, 0.095, 0.10]
+    high:  [0.075, 0.11, 0.13, 0.14, 0.15]
+    units: depreciation / revenue, FY2026-FY2030
+    rationale: >-
+      Rises as recent capex is depreciated (servers over six years per the FY2023 10-K). A PP&E
+      roll-forward schedule would tie this to the capex path mechanically; that is the next model step.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  terminal_growth:
+    value: 0.03
+    low: 0.02
+    high: 0.04
+    units: perpetual nominal growth from FY2031
+    rationale: Below the 10-year Treasury yield used as the risk-free rate.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  terminal_margin:
+    value: 0.32
+    low: 0.26
+    high: 0.36
+    units: operating margin in the terminal year
+    rationale: Equal to the FY2030 margin so there is no jump into the terminal value.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  terminal_roic:
+    value: 0.20
+    low: 0.12
+    high: 0.35
+    units: return on new invested capital in perpetuity
+    rationale: >-
+      Sets terminal reinvestment = growth / ROIC. Well below Alphabet's recent returns because the
+      incremental AI capital may earn less; still assumes a durable advantage over the cost of capital.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  equity_risk_premium:
+    value: 0.045
+    low: 0.040
+    high: 0.055
+    units: US equity risk premium
+    rationale: >-
+      TEAM INPUT REQUIRED. Placeholder inside a commonly used range; no source attached. Replace
+      with a cited figure (e.g. a published implied ERP) before relying on the value.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  beta:
+    value: 1.05
+    low: 0.90
+    high: 1.30
+    units: equity beta
+    rationale: TEAM INPUT REQUIRED. No automated estimate per PRD B4; attach a regression or bottom-up beta.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  operating_cash:
+    value: 0.0
+    low: 0.0
+    high: 20.0e+9
+    units: USD of cash treated as operationally necessary (not excess)
+    rationale: All cash and marketable securities treated as excess for now; the team should decide a reserve.
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+
+scenarios:
+  adverse:
+    rationale: >-
+      Joint stress (PRD B5): growth normalizes faster while capex intensity stays higher for longer,
+      and the new capital earns less. The pieces move together; they are not independent shocks.
+    growth: [0.16, 0.10, 0.07, 0.06, 0.05]
+    operating_margin: [0.31, 0.29, 0.28, 0.28, 0.28]
+    capex_pct: [0.36, 0.34, 0.30, 0.25, 0.21]
+    terminal_margin: 0.28
+    terminal_roic: 0.14
+  favorable:
+    rationale: >-
+      Growth holds up, the capex wave normalizes quickly, and margins expand as revenue from the
+      new capacity arrives. Assumes the investment earns high returns.
+    growth: [0.23, 0.19, 0.16, 0.13, 0.10]
+    operating_margin: [0.35, 0.35, 0.35, 0.35, 0.35]
+    capex_pct: [0.30, 0.24, 0.19, 0.16, 0.14]
+    terminal_margin: 0.35
+    terminal_roic: 0.28

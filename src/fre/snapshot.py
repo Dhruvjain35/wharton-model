@@ -47,6 +47,10 @@ def store(raw: bytes, url: str, retrieved_at: str | None = None) -> str:
         # mtime=0 keeps the gzip bytes themselves deterministic
         path.write_bytes(gzip.compress(raw, mtime=0))
     manifest = _load_manifest()
+    if sid in manifest and manifest[sid]["url"] != url:
+        manifest[sid].setdefault("also_urls", [])
+        if url not in manifest[sid]["also_urls"]:
+            manifest[sid]["also_urls"].append(url)
     manifest.setdefault(sid, {"url": url, "retrieved_at": retrieved_at or _now(), "bytes": len(raw)})
     MANIFEST.write_text(json.dumps(manifest, indent=2, sort_keys=True))
     return sid
@@ -67,17 +71,25 @@ def info(sid: str) -> dict:
     return _load_manifest()[sid]
 
 
-def fetch(url: str, headers: dict | None = None) -> str:
-    """Download once; a URL already in the manifest is served from its snapshot."""
+def fetch(url: str, headers: dict | None = None, accept=None, force: bool = False) -> str:
+    """Download once; a URL already in the manifest is served from its newest snapshot.
+
+    `accept(raw) -> bool` rejects a response before it is stored (an empty API answer
+    must never become a permanent snapshot). `force` re-downloads a live URL.
+    """
     import requests
 
-    for sid, meta in _load_manifest().items():
-        if meta["url"] == url and (SNAPSHOT_DIR / f"{sid}.gz").exists() and not url.startswith(SEC_BASE):
-            return sid  # filing archives are immutable; only the live company APIs are re-downloaded
+    if not force and not url.startswith(SEC_BASE):  # filing archives are immutable
+        cached = [(meta["retrieved_at"], sid) for sid, meta in _load_manifest().items()
+                  if meta["url"] == url and (SNAPSHOT_DIR / f"{sid}.gz").exists()]
+        if cached:
+            return max(cached)[1]
 
     resp = requests.get(url, headers=headers or {"User-Agent": _user_agent()}, timeout=60)
     resp.raise_for_status()
     time.sleep(0.15)  # stay well under SEC's 10 requests/second fair-access limit
+    if accept is not None and not accept(resp.content):
+        raise LookupError(f"rejected response from {url}; nothing stored")
     return store(resp.content, url)
 
 

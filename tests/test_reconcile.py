@@ -133,3 +133,17 @@ def test_falls_back_to_the_fiscal_years_own_10k_statement():
     ds.annual_filings = {"FY2025": "OWN"}
     got = reconcile(ds, fetch=lambda c, a: [BALANCE] if a == "OWN" else [])[0]
     assert got.outcome == "matched"
+
+
+def test_six_month_ytd_fact_matches_only_the_six_month_column():
+    st = Statement(title="INCOME STATEMENTS - USD ($) $ in Millions", usd_scale=1e6,
+                   columns=[Column(3, date(2026, 6, 30)), Column(6, date(2026, 6, 30))],
+                   rows=[R("Revenues", "us-gaap:Revenues", [120_000, 229_690])])
+    src = Source(accession="Q", form="10-Q", filed=date(2026, 7, 23), url="u", locator="us-gaap:Revenues",
+                 snapshot_id="s", retrieved_at="t")
+    f = Fact(company="1", metric="revenue", value=229_690e6, unit="USD", period_start=date(2026, 1, 1),
+             period_end=date(2026, 6, 30), fiscal_label="YTD2026-06-30", status=FactStatus.REPORTED, sources=[src])
+    ds = dataset(f)
+    assert reconcile(ds, fetch=lambda c, a: [st])[0].outcome == "matched"
+    g = f.model_copy(update={"value": 120_000e6})  # the 3-month value must not verify a 6-month fact
+    assert reconcile(dataset(g), fetch=lambda c, a: [st])[0].outcome == "mismatch"

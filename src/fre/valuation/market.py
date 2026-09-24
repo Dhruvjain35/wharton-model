@@ -29,11 +29,18 @@ class Quote:
     snapshot_id: str
 
 
-def closes(symbol: str, start: date, end: date) -> list[Quote]:
-    url = (f"https://api.nasdaq.com/api/quote/{symbol}/historical?assetclass=stocks"
-           f"&fromdate={start}&todate={end}&limit=400")
-    sid = snapshot.fetch(url, headers=BROWSER)
-    rows = (json.loads(snapshot.load_bytes(sid))["data"] or {}).get("tradesTable", {}).get("rows") or []
+def _has_rows(raw: bytes) -> bool:
+    try:
+        return bool((json.loads(raw)["data"] or {}).get("tradesTable", {}).get("rows"))
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return False
+
+
+def closes(symbol: str, start: date, force: bool = False) -> list[Quote]:
+    # Nasdaq ignores or empties `todate` for past windows; `fromdate` alone returns through today.
+    url = f"https://api.nasdaq.com/api/quote/{symbol}/historical?assetclass=stocks&fromdate={start}&limit=400"
+    sid = snapshot.fetch(url, headers=BROWSER, accept=_has_rows, force=force)
+    rows = json.loads(snapshot.load_bytes(sid))["data"]["tradesTable"]["rows"]
     out = [Quote(symbol=symbol, date=datetime.strptime(r["date"], "%m/%d/%Y").date(),
                  close=float(r["close"].replace("$", "").replace(",", "")), source_url=url, snapshot_id=sid)
            for r in rows]
@@ -43,7 +50,11 @@ def closes(symbol: str, start: date, end: date) -> list[Quote]:
 def close_on_or_before(symbol: str, on: date, lookback_days: int = 10) -> Quote:
     from datetime import timedelta
 
-    qs = [q for q in closes(symbol, on - timedelta(days=lookback_days), on) if q.date <= on]
+    start = on - timedelta(days=lookback_days)
+    qs = closes(symbol, start)
+    if qs and qs[-1].date < on:  # the stored snapshot predates the date asked for
+        qs = closes(symbol, start, force=True)
+    qs = [q for q in qs if q.date <= on]
     if not qs:
         raise LookupError(f"no {symbol} close within {lookback_days} days before {on}")
     return qs[-1]
@@ -63,7 +74,8 @@ def fred_on_or_before(series: str, on: date, lookback_days: int = 10) -> Rate:
 
     start = on - timedelta(days=lookback_days)
     url = f"https://fred.stlouisfed.org/graph/fredgraph.csv?id={series}&cosd={start}&coed={on}"
-    sid = snapshot.fetch(url, headers={"User-Agent": "curl/8.7.1"})  # FRED drops unrecognized agents
+    sid = snapshot.fetch(url, headers={"User-Agent": "curl/8.7.1"},  # FRED drops unrecognized agents
+                         accept=lambda raw: raw.startswith(b"observation_date"))
     rows = list(csv.reader(io.StringIO(snapshot.load_bytes(sid).decode())))[1:]
     vals = [(date.fromisoformat(d), float(v)) for d, v in rows if v not in ("", ".")]
     vals = [x for x in vals if x[0] <= on]

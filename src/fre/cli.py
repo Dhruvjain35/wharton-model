@@ -53,6 +53,19 @@ def _cmd_verify_ledger(a):
     return 1 if problems else 0
 
 
+def _cmd_value(a):
+    from .valuation import report
+    from .valuation.run import run
+
+    v = run(a.ticker)
+    ev = report.evidence(v, v.companyfacts, v.fundamentals)
+    out = report.write(v, ev, Path(a.out) / a.ticker / "valuation")
+    print(f"wrote {out}")
+    b = v.scenarios["base"]
+    print(f"base value/share {b.value_per_share:,.2f} (WACC {v.wacc.wacc:.2%}); input problems: {len(v.problems)}")
+    return 1 if v.problems else 0
+
+
 def _cmd_review(a):
     from .engine import build
 
@@ -86,6 +99,11 @@ def main(argv=None) -> int:
     s = sub.add_parser("verify-ledger", help="check every ledger quote against the filing text")
     s.add_argument("ticker")
     s.set_defaults(fn=_cmd_verify_ledger)
+
+    s = sub.add_parser("value", help="run reviews/<TICKER>/valuation.yaml: DCF, scenarios, reverse DCF, grids")
+    s.add_argument("ticker")
+    s.add_argument("--out", default=str(ROOT / "out"))
+    s.set_defaults(fn=_cmd_value)
 
     s = sub.add_parser("review", help="print the review queue")
     s.add_argument("ticker")
