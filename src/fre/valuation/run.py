@@ -143,6 +143,39 @@ def check_sourced_values(cfg: dict) -> list[str]:
     return problems
 
 
+def confirm_bridge(confirmations: dict, values: dict, text_for) -> tuple[set, list[str]]:
+    """A bridge input no filed table verified can be confirmed by a hand-picked, verbatim quote whose
+    stated figure (times its scale) equals the value used. scale 0 means the quote states there is none."""
+    import re
+
+    ok, problems = set(), []
+    for metric, c in (confirmations or {}).items():
+        quote = " ".join(c["quote"].split())
+        if quote not in " ".join(text_for(c["snapshot_id"]).split()):
+            problems.append(f"{metric}: confirmation quote not found verbatim in snapshot {c['snapshot_id']}")
+            continue
+        if not re.search(rf"(?<![\d,.]){re.escape(c['figure'])}(?![\d,]|\.\d)", quote):
+            problems.append(f"{metric}: figure '{c['figure']}' is not in its confirmation quote")
+            continue
+        stated = 0.0 if float(c["scale"]) == 0 else float(c["figure"].replace(",", "")) * float(c["scale"])
+        if values.get(metric) is None or abs(values[metric] - stated) > 0.5 * max(float(c["scale"]), 1.0):
+            problems.append(f"{metric}: value {values.get(metric)} differs from the confirmed figure {stated:g}")
+            continue
+        ok.add(metric)
+    return ok, problems
+
+
+def nwc_add_backs(ds, names: list[str], label: str) -> dict[str, float]:
+    """Financing items sitting inside subtracted NWC lines. Missing is an error, never zero."""
+    out = {}
+    for m in names:
+        v = ds.value(m, label)
+        if v is None:
+            raise ConfigError(f"operating NWC add-back {m}@{label} is missing; attest it or remove it from the list")
+        out[m] = v
+    return out
+
+
 def _a(cfg: dict, name: str, which: str = "value"):
     return cfg["assumptions"][name][which]
 
@@ -197,6 +230,7 @@ class ValuationRun:
     grids: dict[str, dict]
     nonoperating_sensitivity: list[dict]
     breakevens: dict[str, SolveResult] = field(default_factory=dict)
+    confirmed: set = field(default_factory=set)  # bridge inputs confirmed by verified quotes
     preferred_sensitivity: list[dict] = field(default_factory=list)
     multiples: dict = field(default_factory=dict)  # ticker -> Multiples at the latest price date
     snapshots_read: list[str] = field(default_factory=list)
@@ -228,7 +262,7 @@ def run(ticker: str) -> ValuationRun:
     by = cfg["base_year"]
 
     from ..engine import build as build_fundamentals  # annual facts, reconciled
-    fund = build_fundamentals(ticker, check_notes=False)
+    fund = build_fundamentals(ticker, check_notes=True)  # same verification tiers as the dossier
     ds = fund.reported
     rev = ds.fact("revenue", by)
     base_revenue = Sourced("base revenue", rev.value, f"{rev.sources[0].url} ({rev.sources[0].locator})")
@@ -237,11 +271,7 @@ def run(ticker: str) -> ValuationRun:
     if not 0 < stub <= 1:
         raise ConfigError(f"valuation date {vdate} must fall inside the first forecast year")
 
-    fin_extra = {}
-    for m in cfg["operating_nwc"].get("add_back_financing", []):
-        if ds.value(m, by) is None:  # missing is not zero
-            raise ConfigError(f"operating NWC add-back {m}@{by} is missing; attest it or remove it from the list")
-        fin_extra[m] = ds.value(m, by)
+    fin_extra = nwc_add_backs(ds, cfg["operating_nwc"].get("add_back_financing", []), by)
     nwc = operating_nwc(cfg, cik, ds.annual_filings[by], fy_end, fin_extra)
 
     latest = fund.latest
@@ -265,11 +295,17 @@ def run(ticker: str) -> ValuationRun:
     items["preferred_claim"] = Sourced("mandatory convertible preferred at liquidation preference",
                                        float(liq["value"]) * float(n_dep["value"]),
                                        f"{n_dep['quote']} / {liq['quote']}")
+    shares = {"outstanding": bal("shares_outstanding"), "unvested_rsus": bal("unvested_rsus")}
+    from ..verify import _text
+    confirmed, conf_problems = confirm_bridge(
+        cfg.get("bridge_confirmations") or {},
+        {k: v.value for k, v in items.items()} | {"shares_outstanding": shares["outstanding"].value,
+                                                   "unvested_rsus": shares["unvested_rsus"].value}, _text)
+    problems += conf_problems
     operating_cash = float(_a(cfg, "operating_cash"))
     excess_cash = items["cash"].value + items["st_investments"].value - operating_cash
     debt = sum(items[k].value for k in ("debt_lt_noncurrent", "debt_lt_current", "finance_lease_liability",
                                         "commercial_paper"))
-    shares = {"outstanding": bal("shares_outstanding"), "unvested_rsus": bal("unvested_rsus")}
     diluted = shares["outstanding"].value + shares["unvested_rsus"].value
     bridge = Bridge(excess_cash=excess_cash, nonoperating_assets=items["other_lt_investments"].value,
                     debt=debt, other_senior_claims=items["preferred_claim"].value, diluted_shares=diluted)
@@ -355,4 +391,5 @@ def run(ticker: str) -> ValuationRun:
                         base_revenue=base_revenue, nwc=nwc, bridge_items=items, shares=shares, prices=prices,
                         market_cap=mcap, wacc=w, base=base, scenarios=scenarios, reverse=rev_out, grids=grids,
                         nonoperating_sensitivity=nonop, breakevens=breakevens, fundamentals=fund, companyfacts=cf,
-                        preferred_sensitivity=pref_sens, multiples=mults, snapshots_read=sorted(read))
+                        preferred_sensitivity=pref_sens, multiples=mults, snapshots_read=sorted(read),
+                        confirmed=confirmed)

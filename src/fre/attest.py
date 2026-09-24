@@ -64,7 +64,8 @@ def apply_zero_attestations(ds: Dataset, rules: list[dict], fetch=primary_statem
                 "value": 0.0, "status": FactStatus.DERIVED, "sources": [src],
                 "formula": f"0: not presented (no XBRL fact; no line matching the mapped tags or "
                            f"/{rule['absent_label_pattern']}/ in {accn})",
-                "notes": f.notes + [rule["rationale"]]})
+                "notes": f.notes + [rule["rationale"] if ds.as_of is None else
+                                    "rationale omitted: written after this point-in-time run's as-of date"]})
             ds.review[:] = [i for i in ds.review if not (i.kind == "missing" and i.metric == metric and i.fiscal_label == label)]
             ds.review.append(ReviewItem(severity="info", metric=metric, fiscal_label=label, kind="zero-attested",
                                         message=f"{METRICS[metric].label} {label}: verified not presented; set to 0"))

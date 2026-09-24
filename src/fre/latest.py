@@ -46,7 +46,8 @@ def latest_end(cf: dict, fy_start: date) -> date | None:
     return max(ends) if ends else None
 
 
-def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_notes) -> tuple[Dataset | None, list[ReconRecord], dict]:
+def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_notes,
+                 annual_recon: dict | None = None) -> tuple[Dataset | None, list[ReconRecord], dict]:
     last = annual.labels[-1]
     fy_end = annual.fact("revenue", last).period_end
     start = fy_end + timedelta(days=1)
@@ -77,12 +78,21 @@ def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_note
         put(standalone_quarter(cf, m, q_start, end), labels["q"])
     from .filing_text import text_at
     recon = reconcile(ds, fetch=fetch, fetch_notes=fetch_notes, fetch_text=text_at if fetch_notes else None)
+    from .models import ReviewItem
+    from .reconcile import VERIFIED
+    outcome = {r.fact: r.outcome for r in recon} | (annual_recon or {})
+    for key, f in ds.facts.items():
+        for r in f.restated_from:
+            ds.review.append(ReviewItem(severity="warn", metric=f.metric, fiscal_label=f.fiscal_label, kind="restated",
+                                        message=f"{f.metric} {f.fiscal_label}: {r.accession} reported {r.value:g}; the "
+                                                f"latest filing reports {f.value:g}. TTM uses the latest value"))
 
     for m in FLOWS:  # TTM from reconciled inputs only
         parts = [(1, annual.facts.get(f"{m}@{last}")), (1, ds.facts[f"{m}@{labels['cur']}"]),
                  (-1, ds.facts[f"{m}@{labels['prior']}"])]
         inputs = [f"{m}@{last}", f"{m}@{labels['cur']}", f"{m}@{labels['prior']}"]
-        missing = [k for (_, f), k in zip(parts, inputs) if f is None or f.value is None]
+        missing = [k for (_, f), k in zip(parts, inputs) if f is None or f.value is None
+                   or (outcome and f.status == FactStatus.REPORTED and outcome.get(k) not in VERIFIED)]
         unit = ds.facts[f"{m}@{labels['cur']}"].unit
         common = dict(company=annual.company.cik, metric=m, unit=unit, period_start=prior_end + timedelta(days=1),
                       period_end=end, fiscal_label=labels["ttm"], inputs=inputs,

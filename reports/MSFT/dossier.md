@@ -1,13 +1,13 @@
 # MICROSOFT CORPORATION (MSFT) — fundamentals dossier
 
-Fiscal years FY2022–FY2026 (fiscal year ends 06-30) · run `06da42da70c4` · code `41bc18bd` (uncommitted changes) · created 2026-09-24T06:25:37+00:00
+Fiscal years FY2022–FY2026 (fiscal year ends 06-30) · run `4a240faea0b9` · code `286ad5a3` (uncommitted changes) · created 2026-09-24T06:42:29+00:00
 
 **Data vintage: current (latest restated filings).** Every figure below comes from SEC filings through pinned snapshots and deterministic Python. `fre verify-run` recomputes this run and proves the digest.
 
 ## Data quality
 
 - Facts: 132 derived, 51 missing, 158 reported
-- Reconciliation to filed statements: 118 matched, 22 matched-in-notes, 3 matched-in-text, 15 matched-negated, 42 not-checked
+- Reconciliation to filed statements: 3 from-notes, 118 matched, 22 matched-in-notes, 15 matched-negated, 42 not-checked
 - Review queue: 0 blocking, 0 warnings
 - Ledger quotes verified against filing text: all
 

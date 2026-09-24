@@ -8,8 +8,9 @@ Outcomes per fact:
   mismatch     the statement shows a different value -> blocks the fact
   ambiguous    the tag is on several lines and none equals the value -> blocks
   matched-in-notes  not on a primary statement, but a note detail table shows this tag, period and value
-  matched-in-text   weakest tier: the printed value (or an explicit "no ... outstanding") sits next to
-               the metric's keyword in the filing document; the snippet is kept as evidence
+  text-candidate    NOT a verification: the printed value (or an explicit "no ... outstanding") sits just
+               after the metric's keyword in the filing text. The snippet is kept as a lead for a human;
+               the fact still counts as unverified (a nearby number can be a coincidence)
   from-notes   not found on a primary statement, a parsed note table or the text; verify by hand
   not-checked  derived, missing or conflicting facts (their own review items already cover them)
 """
@@ -50,6 +51,9 @@ def _tolerance(unit: str, value: float) -> float:
     return 0.5e6 if abs(value) >= 1e6 else 0.5
 
 
+# outcomes that count as verified against the filing; everything else is unverified
+VERIFIED = {"matched", "matched-negated", "matched-in-notes"}
+
 # tags a cash flow statement prints with the opposite sign: outflows, and gains removed from net income
 NEGATED_ON_CASH_FLOW = __import__("re").compile(r":(Payments|Repayments|.*GainLoss|IncreaseDecrease|.*FvNi)")
 
@@ -75,7 +79,7 @@ def _in_text(key, f, src, fetch_text) -> ReconRecord | None:
     if f.value == 0:
         m = re.search(rf"\bno (?:{kw})[^.]{{0,80}}outstanding", text, re.I)
         if m:
-            return ReconRecord(fact=key, outcome="matched-in-text", expected=0.0, found=0.0,
+            return ReconRecord(fact=key, outcome="text-candidate", expected=0.0, found=0.0,
                                statement="filing text", line=m.group(0), url=src.url)
         return None
     scale = 1e6 if abs(f.value) >= 1e6 else 1.0
@@ -85,9 +89,9 @@ def _in_text(key, f, src, fetch_text) -> ReconRecord | None:
     if abs(f.value) >= 1e9 and abs(f.value) % 1e8 == 0:  # "$2.3 billion", "$ 2.3 billion"
         forms.append(rf"\$ ?{re.escape(f'{abs(f.value) / 1e9:.1f}')} billion")
     for m in re.finditer(rf"(?<![\d,.])(?:{'|'.join(forms)})(?![\d,]|\.\d)", text):
-        window = text[max(0, m.start() - 250):m.end() + 60]  # keyword must sit right next to the figure
+        window = text[max(0, m.start() - 120):m.start()]  # keyword must come shortly before the figure
         if re.search(kw, window, re.I):
-            return ReconRecord(fact=key, outcome="matched-in-text", expected=f.value, found=f.value,
+            return ReconRecord(fact=key, outcome="text-candidate", expected=f.value, found=f.value,
                                statement="filing text", line=text[max(0, m.start() - 120):m.end() + 20], url=src.url)
     return None
 
@@ -163,8 +167,6 @@ def reconcile(ds: Dataset, fetch=primary_statements, fetch_notes=None, fetch_tex
         f = ds.facts[r.fact]
         if r.outcome in ("matched", "matched-negated", "matched-in-notes") and r.scale:
             ds.facts[r.fact] = f.model_copy(update={"scale": int(r.scale)})
-        elif r.outcome == "matched-in-text":
-            ds.facts[r.fact] = f.model_copy(update={"scale": 1_000_000 if abs(f.value or 0) >= 1e6 else 1})
     for r in records:
         metric, label = r.fact.split("@")
         if r.outcome in ("mismatch", "ambiguous"):

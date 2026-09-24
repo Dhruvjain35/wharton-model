@@ -77,3 +77,26 @@ def test_ai_reviewer_cannot_approve_an_assumption():
     assert any("human reviewer" in p for p in validate(c))
     c = cfg(terminal_growth=GOOD | {"status": "approved", "reviewer": "Priya"})
     assert validate(c) == []
+
+
+def test_missing_nwc_add_back_is_an_error_not_zero():
+    import pytest
+    from types import SimpleNamespace
+    from fre.valuation.run import ConfigError, nwc_add_backs
+    ds = SimpleNamespace(value=lambda m, l: {"debt_lt_current": 1.996e9}.get(m))
+    assert nwc_add_backs(ds, ["debt_lt_current"], "FY2025") == {"debt_lt_current": 1.996e9}
+    with pytest.raises(ConfigError, match="commercial_paper"):
+        nwc_add_backs(ds, ["debt_lt_current", "commercial_paper"], "FY2025")
+
+
+def test_bridge_confirmation_needs_verbatim_quote_and_equal_figure():
+    from fre.valuation.run import confirm_bridge
+    text = "Less: current portion of long-term notes (3) ( 1,996 ) ( 1,999 ) We had no commercial paper outstanding"
+    conf = {"debt_lt_current": {"snapshot_id": "S", "quote": "Less: current portion of long-term notes (3) ( 1,996 ) ( 1,999 )",
+                                "figure": "1,999", "scale": 1.0e+6},
+            "commercial_paper": {"snapshot_id": "S", "quote": "We had no commercial paper outstanding", "figure": "no commercial paper", "scale": 0}}
+    values = {"debt_lt_current": 1_999e6, "commercial_paper": 0.0}
+    ok, problems = confirm_bridge(conf, values, lambda sid: text)
+    assert ok == {"debt_lt_current", "commercial_paper"} and problems == []
+    ok, problems = confirm_bridge(conf, {"debt_lt_current": 1_996e6, "commercial_paper": 0.0}, lambda sid: text)
+    assert "debt_lt_current" not in ok and problems   # the December column must not confirm the June value

@@ -1,6 +1,6 @@
 # Meta Platforms, Inc. (META) — fundamentals dossier
 
-Fiscal years FY2021–FY2025 (fiscal year ends 12-31) · run `bfb51272b085` · code `41bc18bd` (uncommitted changes) · created 2026-09-24T06:25:40+00:00
+Fiscal years FY2021–FY2025 (fiscal year ends 12-31) · run `32f11ba31ce1` · code `286ad5a3` (uncommitted changes) · created 2026-09-24T06:42:31+00:00
 
 **Data vintage: current (latest restated filings).** Every figure below comes from SEC filings through pinned snapshots and deterministic Python. `fre verify-run` recomputes this run and proves the digest.
 
@@ -91,7 +91,7 @@ Debt policy: notes at carrying value + finance leases + commercial paper, every 
 
 ## Latest reported period (10-Q through 2026-06-30)
 
-Year-to-date values reconciled to the 10-Q statements (26 matched, 3 matched-in-notes, 5 matched-negated, 17 not-checked). TTM = last fiscal year + YTD - prior-year YTD, built only from reconciled inputs.
+Year-to-date values reconciled to the 10-Q statements (26 matched, 1 matched-in-notes, 5 matched-negated, 19 not-checked). TTM = last fiscal year + YTD - prior-year YTD, built only from reconciled inputs.
 
 | Metric | YTD prior year | YTD current | Change | Latest quarter | TTM |
 |---|---:|---:|---:|---:|---:|
@@ -102,8 +102,8 @@ Year-to-date values reconciled to the 10-Q statements (26 matched, 3 matched-in-
 | Operating cash flow | $49.6bn | $64.1bn | +29.2% | $31.9bn* | $130.3bn |
 | Capex | $29.5bn | $49.1bn | +66.6% | $30.1bn* | $89.3bn |
 | Cash FCF (CFO - capex) | $20.1bn | $15.0bn | -25.5% | $1.7bn* | $41.0bn |
-| Depreciation | $8.2bn | $12.4bn | +49.9% | $6.0bn | $22.7bn |
-| SBC | $9.0bn | $13.7bn | +52.4% | $7.6bn | $25.1bn |
+| Depreciation | $8.2bn | $12.4bn | +49.9% | $6.4bn* | $22.7bn |
+| SBC | $9.0bn | $13.7bn | +52.4% | $7.7bn* | $25.1bn |
 | Buybacks | $22.9bn | $0 | -100.0% | $0* | $3.3bn |
 | Dividends to common | $2.7bn | $2.7bn | +1.6% | $1.4bn | $5.4bn |
 

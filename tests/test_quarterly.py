@@ -85,3 +85,22 @@ def test_quarter_start_for_the_latest_standalone_quarter():
     from fre.latest import _quarter_start
     assert _quarter_start(date(2026, 6, 30)) == date(2026, 4, 1)
     assert _quarter_start(date(2026, 2, 28)) == date(2025, 12, 1)
+
+
+def test_standalone_quarter_uses_the_same_concept_as_the_ytd():
+    cf = {"cik": 1, "entityName": "T", "facts": {"us-gaap": {
+        "ShareBasedCompensation": {"units": {"USD": [
+            o(6.751, "2026-01-01", "2026-03-31", "q126", "2026-04-30"),
+            o(14.708, "2026-01-01", "2026-06-30", "q226", "2026-07-23")]}},
+        "AllocatedShareBasedCompensationExpense": {"units": {"USD": [   # expense tag, rounded, 3 months
+            o(8.0, "2026-04-01", "2026-06-30", "q226", "2026-07-23")]}}}}}
+    f = standalone_quarter(cf, "sbc", date(2026, 4, 1), date(2026, 6, 30))
+    assert f.value == pytest.approx(14.708 - 6.751) and f.status == FactStatus.DERIVED
+
+
+def test_restated_quarterly_value_is_kept_visible():
+    cf = {"cik": 1, "entityName": "T", "facts": {"us-gaap": {"PaymentsForRepurchaseOfCommonStock": {"units": {"USD": [
+        o(28_706.0, "2025-01-01", "2025-06-30", "q225", "2025-07-24"),
+        o(28_306.0, "2025-01-01", "2025-06-30", "q226", "2026-07-23")]}}}}}
+    f = ytd(cf, "buybacks", date(2025, 1, 1), date(2025, 6, 30))
+    assert f.value == 28_306.0 and [r.value for r in f.restated_from] == [28_706.0]

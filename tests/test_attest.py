@@ -90,3 +90,11 @@ def test_a_verified_zero_resolves_the_missing_review_item():
     run(ds, [BS], [])
     assert not any(i.kind == "missing" for i in ds.review)
     assert any(i.kind == "zero-attested" for i in ds.review)
+
+
+def test_point_in_time_runs_do_not_carry_present_day_rationale():
+    ds = ds_with(None)
+    ds.as_of = date(2024, 3, 1)
+    run(ds, [BS], [])
+    f = ds.fact("debt_lt_current", "FY2025")
+    assert f.value == 0.0 and RULE["rationale"] not in " ".join(f.notes)

@@ -63,6 +63,30 @@ sourced:
     snapshot_id: 1b4e671893d74a58
     quote: liquidation preference of $ 1,000 per share ($ 50 per depositary share)
 
+# Bridge inputs that no parsed 10-Q table verifies, confirmed by verbatim quotes whose figure must
+# equal the value the model uses (scale 0 = the quote states there is none). Checked by `fre value`.
+bridge_confirmations:
+  debt_lt_current:
+    snapshot_id: 1b4e671893d74a58
+    quote: "Less: current portion of long-term notes (3) ( 1,996 ) ( 1,999 )"
+    figure: "1,999"        # second column = June 30, 2026 (first is December 31, 2025)
+    scale: 1.0e+6
+  commercial_paper:
+    snapshot_id: 1b4e671893d74a58
+    quote: We had no commercial paper outstanding as of December 31, 2025 and June 30, 2026
+    figure: no commercial paper
+    scale: 0
+  unvested_rsus:
+    snapshot_id: 1b4e671893d74a58
+    quote: Unvested as of June 30, 2026 294
+    figure: "294"
+    scale: 1.0e+6
+  shares_outstanding:
+    snapshot_id: 1b4e671893d74a58
+    quote: 12,230 (Class A 5,868 , Class B 835 , Class C 5,527 ) shares issued and outstanding
+    figure: "12,230"
+    scale: 1.0e+6
+
 assumptions:
   growth:
     value: [0.20, 0.15, 0.12, 0.10, 0.08]

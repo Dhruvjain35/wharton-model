@@ -177,13 +177,13 @@ def run_text(*facts):
                                          fetch_text=lambda url: TEXT)}
 
 
-def test_value_printed_near_its_keyword_matches_in_text():
+def test_value_printed_after_its_keyword_is_only_a_text_candidate():
     r = run_text(text_fact("debt_lt_current", 1_996e6))["debt_lt_current@FY2025"]
-    assert r.outcome == "matched-in-text" and "1,996" in r.line
+    assert r.outcome == "text-candidate" and "1,996" in r.line
 
 
 def test_zero_needs_an_explicit_none_statement():
-    assert run_text(text_fact("commercial_paper", 0.0))["commercial_paper@FY2025"].outcome == "matched-in-text"
+    assert run_text(text_fact("commercial_paper", 0.0))["commercial_paper@FY2025"].outcome == "text-candidate"
 
 
 def test_number_far_from_its_keyword_does_not_match():
@@ -191,11 +191,11 @@ def test_number_far_from_its_keyword_does_not_match():
     assert run_text(text_fact("commercial_paper", 402_836e6))["commercial_paper@FY2025"].outcome == "from-notes"
 
 
-def test_billion_phrasing_verifies_a_round_value():
-    t = "We had $2.3 billion of commercial paper outstanding as of December 31, 2024."
+def test_billion_phrasing_is_a_candidate_for_a_round_value():
+    t = "Commercial paper outstanding as of December 31, 2024 was $2.3 billion."
     r = reconcile(dataset(text_fact("commercial_paper", 2_300e6)), fetch=lambda c, a: [], fetch_notes=lambda c, a: [],
                   fetch_text=lambda url: t)[0]
-    assert r.outcome == "matched-in-text"
+    assert r.outcome == "text-candidate"
 
 
 def test_negated_match_needs_a_tag_that_is_presented_negated():
@@ -209,3 +209,21 @@ def test_verified_fact_records_the_filing_presentation_scale():
     ds = dataset(fact("revenue", 402_836e6, "us-gaap:Revenues"))
     reconcile(ds, fetch=fetch)
     assert ds.fact("revenue", "FY2025").scale == 1_000_000
+
+
+def test_text_candidate_is_not_counted_as_verified():
+    from fre.reconcile import VERIFIED
+    assert "text-candidate" not in VERIFIED and "from-notes" not in VERIFIED
+
+
+def test_keyword_after_the_number_is_not_a_candidate():
+    t2 = "Other balances were 1,996 million, unrelated to the current portion of debt."
+    r = reconcile(dataset(text_fact("debt_lt_current", 1_996e6)), fetch=lambda c, a: [], fetch_notes=lambda c, a: [],
+                  fetch_text=lambda url: t2)[0]
+    assert r.outcome == "from-notes"
+
+
+def test_scale_stays_unknown_when_nothing_verified_it():
+    ds = dataset(fact("cash_taxes", 1.0, "us-gaap:IncomeTaxesPaidNet"))
+    reconcile(ds, fetch=fetch)
+    assert ds.fact("cash_taxes", "FY2025").scale is None

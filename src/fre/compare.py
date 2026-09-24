@@ -102,9 +102,9 @@ def markdown(pilot: Run, peers: list[Run], multiples: dict | None = None) -> str
          history(runs), "Comparability:", "", *comparability(runs), "", *[f"- {n}" for n in notes(pilot, peers)]]
     if multiples:
         L += ["", "Market multiples (relative valuation; every share class counted):", "",
-              "| Company | Trailing window | Price date | Market cap | P/E | EV/EBIT | FCF yield |", "|---|---|---|---:|---:|---:|---:|"]
+              "| Company | Trailing window | Price date | Market cap | P/E (mkt cap / trailing NI) | P/E (price / FY diluted EPS) | EV/EBIT | FCF yield |", "|---|---|---|---:|---:|---:|---:|---:|"]
         for t, m in multiples.items():
-            L.append(f"| {t} | {m.window} | {m.price_date} | {money(m.market_cap)} | {'—' if m.pe is None else f'{m.pe:.1f}x'} | "
+            L.append(f"| {t} | {m.window} | {m.price_date} | {money(m.market_cap)} | {'—' if m.pe is None else f'{m.pe:.1f}x'} | {'—' if m.pe_fy_eps is None else f'{m.pe_fy_eps:.1f}x ({m.fy_label})'} | "
                      f"{'—' if m.ev_ebit is None else f'{m.ev_ebit:.1f}x'} | {'—' if m.fcf_yield is None else f'{m.fcf_yield:.2%}'} |")
         L += [f"- {t}: {'; '.join(m.notes)}" for t, m in multiples.items() if m.notes]
     return "\n".join(L)

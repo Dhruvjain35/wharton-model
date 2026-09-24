@@ -64,6 +64,9 @@ Cost of equity 9.17% = 4.44% + 1.05 × 4.50%; after-tax cost of debt 3.98%; pref
 | = Equity value | $2,492.3bn | |
 | ÷ Diluted shares | 12,524m | 12,230m outstanding + 294m unvested RSUs |
 
+Confirmed by verified 10-Q quotes (not in a parsed table): debt_lt_current, commercial_paper, shares_outstanding, unvested_rsus.
+Every balance-sheet input above is verified against the 10-Q (tables or quoted text).
+
 SBC stays inside operating margin and is not added back; existing RSUs are counted as shares; no separate future-dilution charge (PRD B3). Operating leases stay operating (lease cost inside margin, liability not in debt).
 
 ## Results
@@ -116,15 +119,15 @@ Capex break-even at $337.83: no capex multiplier in [0.2x, 3.0x] reproduces the 
 
 ## Relative valuation cross-check (not averaged with the DCF)
 
-| Company | Window | Price date | Market cap (all classes) | P/E | EV/EBIT | FCF yield |
-|---|---|---|---:|---:|---:|---:|
-| GOOGL | TTM to 2026-06-30 | 2026-09-23 | $4,115.9bn | 16.9x | 27.1x | 1.29% |
-| MSFT | FY2026 | 2026-09-23 | $3,717.2bn | 27.8x | 24.1x | 1.80% |
-| META | TTM to 2026-06-30 | 2026-09-23 | $1,895.6bn | 27.8x | — | 2.16% |
+| Company | Window | Price date | Market cap (all classes) | P/E (mkt cap / trailing NI) | P/E (price / FY diluted EPS) | EV/EBIT | FCF yield |
+|---|---|---|---:|---:|---:|---:|---:|
+| GOOGL | TTM to 2026-06-30 | 2026-09-23 | $4,115.9bn | 16.9x | 31.3x (FY2025) | 27.1x | 1.29% |
+| MSFT | FY2026 | 2026-09-23 | $3,717.2bn | 27.8x | 27.9x (FY2026) | 24.1x | 1.80% |
+| META | TTM to 2026-06-30 | 2026-09-23 | $1,895.6bn | 27.8x | 31.7x (FY2025) | — | 2.16% |
 
-- GOOGL: 'Class A Common Stock' priced at its own trading symbol GOOGL (cover page); 'Class C share repurchases' priced at its own trading symbol GOOG (cover page); 'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping)
-- MSFT: 'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping)
-- META: 'Common Class A' priced at META (no trading symbol on the cover page; config mapping); 'Common Class B' priced at META (no trading symbol on the cover page; config mapping); EV not computed: debt not reported at the balance-sheet date; EV/EBIT: input missing
+- GOOGL: 'Class A Common Stock' priced at its own trading symbol GOOGL (cover page); 'Class C Capital Stock' priced at its own trading symbol GOOG (cover page); 'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping); EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities
+- MSFT: 'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping); EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities
+- META: 'Common Class A' priced at META (no trading symbol on the cover page; config mapping); 'Common Class B' priced at META (no trading symbol on the cover page; config mapping); debt component(s) not reported at 2026-06-30: finance_lease_liability; EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities; EV not computed: debt not reported at the balance-sheet date; EV/EBIT: input missing
 - P/E uses all-class market cap / trailing net income; GOOGL's trailing net income includes $149.0bn of pretax gains on equity securities, so EV/EBIT is the cleaner comparison.
 - Exit-multiple check: the base-case perpetuity terminal value equals 11.7x year-N+1 EBIT. Compare with the trailing EV/EBIT multiples above: a perpetuity value far below what peers trade at today is one reason the model value sits below the price.
 

@@ -326,7 +326,11 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
     L += _latest_section(run)
     if peers_md:
         L += ["## 6. How does it compare with comparable businesses?", "", peers_md, ""]
-    L += _thesis_section(run.ticker)
+    if run.config.get("as_of"):
+        L += ["## Point-in-time run", "", f"Only filings made on or before {run.config['as_of']} are used. The accounting "
+              "ledger, observations, attestation reasons and thesis are excluded: they were written with later knowledge.", ""]
+    else:
+        L += _thesis_section(run.ticker)
     L += ["## Review queue", ""]
     for i in blocks + warns:
         L.append(f"- **{i.severity}** `{i.kind}` {i.message}")

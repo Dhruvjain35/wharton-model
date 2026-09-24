@@ -22,17 +22,22 @@ class QuarterlyError(ValueError):
     pass
 
 
-def _find(cf: dict, metric: str, start: date | None, end: date) -> tuple[dict, str] | None:
-    """Latest-filed observation with exactly this period, over the metric's tags in priority order."""
+def _hits(cf: dict, metric: str, start: date | None, end: date, only_tag: str | None = None):
     spec = METRICS[metric]
     gaap = cf["facts"].get("us-gaap", {})
-    for tag in spec.tags:
+    for tag in ([only_tag] if only_tag else spec.tags):
         hits = [x for x in gaap.get(tag, {}).get("units", {}).get(spec.unit, [])
                 if x.get("form") in FORMS and x["end"] == str(end)
                 and (x.get("start") == str(start) if start else "start" not in x)]
         if hits:
-            return max(hits, key=lambda x: (x["filed"], x["accn"])), tag
-    return None
+            return hits, tag
+    return [], None
+
+
+def _find(cf: dict, metric: str, start: date | None, end: date, only_tag: str | None = None):
+    """Latest-filed observation with exactly this period, over the metric's tags in priority order."""
+    hits, tag = _hits(cf, metric, start, end, only_tag)
+    return (max(hits, key=lambda x: (x["filed"], x["accn"])), tag) if hits else None
 
 
 def _source(cf: dict, obs: dict, tag: str) -> Source:
@@ -42,9 +47,9 @@ def _source(cf: dict, obs: dict, tag: str) -> Source:
                   locator=f"us-gaap:{tag}", snapshot_id="companyfacts", retrieved_at="")
 
 
-def _reported(cf, metric, start, end, label, actions=()) -> Fact:
+def _reported(cf, metric, start, end, label, actions=(), only_tag=None) -> Fact:
     spec = METRICS[metric]
-    hit = _find(cf, metric, start, end)
+    hit = _find(cf, metric, start, end, only_tag)
     if hit is None:
         return Fact(company=str(cf["cik"]), metric=metric, value=None, unit=spec.unit, period_start=start,
                     period_end=end, fiscal_label=label, status=FactStatus.MISSING,
@@ -57,8 +62,16 @@ def _reported(cf, metric, start, end, label, actions=()) -> Fact:
         if factor != 1.0:
             value = _to_current_basis(value, spec.unit, factor)
             status, formula = FactStatus.DERIVED, f"reported {obs['val']:g} rebased by {factor:g}x for later stock split"
+    from .models import Restatement
+    older = {}
+    for x in _hits(cf, metric, start, end, tag)[0]:
+        if x["accn"] != obs["accn"] and float(x["val"]) != float(obs["val"]):
+            older.setdefault(x["accn"], x)
+    restated = [Restatement(accession=a, filed=date.fromisoformat(x["filed"]), value=float(x["val"]), reason="unexplained")
+                for a, x in sorted(older.items(), key=lambda kv: kv[1]["filed"])]
     return Fact(company=str(cf["cik"]), metric=metric, value=value, unit=spec.unit, period_start=start,
-                period_end=end, fiscal_label=label, status=status, formula=formula, sources=[_source(cf, obs, tag)])
+                period_end=end, fiscal_label=label, status=status, formula=formula, sources=[_source(cf, obs, tag)],
+                restated_from=restated)
 
 
 def ytd(cf: dict, metric: str, start: date, end: date, actions=()) -> Fact:
@@ -108,18 +121,20 @@ def ttm(cf: dict, metric: str, end: date, fye: str) -> Fact:
 
 
 def standalone_quarter(cf: dict, metric: str, start: date, end: date) -> Fact:
-    direct = _reported(cf, metric, start, end, f"Q{end}")
-    if direct.value is not None:
-        return direct
-    # the fiscal year start is the earliest start of a reported window ending on `end`
-    gaap = cf["facts"].get("us-gaap", {})
+    """Reported three-month value in the SAME concept as the YTD figure, else YTD minus the prior YTD."""
     spec = METRICS[metric]
+    gaap = cf["facts"].get("us-gaap", {})
     starts = sorted({x["start"] for t in spec.tags for x in gaap.get(t, {}).get("units", {}).get(spec.unit, [])
                      if x.get("form") in FORMS and x["end"] == str(end) and "start" in x and x["start"] < str(start)})
     if not starts:
-        return direct
+        return _reported(cf, metric, start, end, f"Q{end}")
     fy_start = date.fromisoformat(starts[0])
-    ytd_end = ytd(cf, metric, fy_start, end)
-    ytd_prev = ytd(cf, metric, fy_start, start - timedelta(days=1))
+    ytd_hit = _find(cf, metric, fy_start, end)
+    tag = ytd_hit[1] if ytd_hit else None
+    direct = _reported(cf, metric, start, end, f"Q{end}", only_tag=tag)
+    if direct.value is not None:
+        return direct
+    ytd_end = _reported(cf, metric, fy_start, end, f"YTD{end}", only_tag=tag)
+    ytd_prev = _reported(cf, metric, fy_start, start - timedelta(days=1), f"YTD{start - timedelta(days=1)}", only_tag=tag)
     formula = f"YTD ending {end} - YTD ending {start - timedelta(days=1)}"
     return _derived(cf, metric, start, end, f"Q{end}", [(1, ytd_end), (-1, ytd_prev)], formula)

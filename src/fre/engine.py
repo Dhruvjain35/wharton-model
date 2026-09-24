@@ -71,15 +71,19 @@ def build(ticker: str, years: list[int] | None = None, *, check_notes: bool = Tr
     from .filings import enrich
     enrich(ds)
     compute(ds)
-    adjustments, observations = ledger.load(ds, ticker)
-    problems = verify_ledger(ds, ticker)
+    if as_of is None:
+        adjustments, observations = ledger.load(ds, ticker)
+        problems = verify_ledger(ds, ticker)
+    else:  # the ledger is written with today's knowledge (e.g. "recurred in FY2024"): not point-in-time
+        adjustments, observations, problems = [], [], []
     adjusted = compute(ledger.apply(ds, adjustments, enabled=adjustments_on))
     what_if = compute(ledger.apply(ds, adjustments, enabled=adjustments_on, statuses=("approved", "proposed")))
     from . import snapshot
     from .latest import build_latest
     latest, latest_recon, latest_labels = build_latest(
         ds, _as_of_cf(snapshot.load(ds.snapshot_ids["companyfacts"]), as_of), snapshot.load(ds.snapshot_ids["submissions"]),
-        primary_statements, note_details if check_notes else None)
+        primary_statements, note_details if check_notes else None,
+        annual_recon={r.fact: r.outcome for r in recon} if check_notes else None)
     if latest is not None:  # zero attestations may also cover the latest 10-Q balance sheet
         accn = latest.fact("revenue", latest_labels["cur"]).sources[0].accession
         latest.annual_filings = {latest_labels["bs"]: accn}

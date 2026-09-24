@@ -33,7 +33,7 @@ def check(*, adjustments: list[dict], assumptions: dict, scenarios: dict, thesis
     item(bool(thesis.get("invalidation")), "List observable invalidation conditions")
     item(bool(thesis.get("decision_history")), "Record at least one dated decision, ideally where evidence changed the view")
     item(open_warnings == 0, f"Resolve open review warnings ({open_warnings})")
-    item(unverified == 0, f"Check unverified facts by hand ({unverified} not matched to a filed statement, table or text)")
+    item(unverified == 0, f"Check unverified facts by hand ({unverified} not verified against a filed statement or table)")
     for t, c in comparability.items():
         item("Team to confirm" not in c.get("note", ""), f"Confirm the {t} comparability note")
     return out
@@ -46,7 +46,9 @@ def for_ticker(root: Path, ticker: str, run) -> list[dict]:
     adj = yaml.safe_load((rev / "adjustments.yaml").read_text()) if (rev / "adjustments.yaml").exists() else {}
     val = yaml.safe_load((rev / "valuation.yaml").read_text()) if (rev / "valuation.yaml").exists() else {}
     thesis = yaml.safe_load((rev / "thesis.yaml").read_text()) if (rev / "thesis.yaml").exists() else {}
-    unverified = sum(r.outcome == "from-notes" for r in run.reconciliation + run.latest_reconciliation)
+    from .reconcile import VERIFIED
+    unverified = sum(r.outcome not in VERIFIED and r.outcome != "not-checked"
+                     for r in run.reconciliation + run.latest_reconciliation)
     warnings = sum(i.severity == "warn" for i in run.reported.review)
     return check(adjustments=adj.get("adjustments") or [], assumptions=val.get("assumptions") or {},
                  scenarios=val.get("scenarios") or {}, thesis=thesis or {}, open_warnings=warnings,

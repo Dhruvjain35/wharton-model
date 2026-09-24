@@ -40,6 +40,8 @@ class Multiples:
     ev_ebit: float | None
     fcf_yield: float | None
     ev_components: dict = field(default_factory=dict)
+    pe_fy_eps: float | None = None  # headline class price / last fiscal-year diluted EPS (PRD A2 definition)
+    fy_label: str = ""
     notes: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -54,6 +56,7 @@ def compute(ticker: str, price_date: date, classes: list[ClassShares], window: s
     comps = {"market_cap": mcap, "debt": debt, "preferred": preferred, "cash": cash, "marketable": marketable}
     ev = None
     missing = [k for k, v in comps.items() if v is None]
+    notes.append("EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities")
     if missing:  # missing is not zero; a component a company lacks must be attested
         notes.append(f"EV not computed: {', '.join(missing)} not reported at the balance-sheet date")
     else:
@@ -79,12 +82,14 @@ def cover_classes(cik: int, accession: str) -> list[tuple[str, float, str | None
     url = f"{ARCHIVES}/{cik}/{accession.replace('-', '')}/R1.htm"
     st = parse_r_page(snapshot.load_bytes(snapshot.fetch(url)))
     symbols = {r.section: next((t for t in r.text if t), None) for r in st.rows if r.tag == "dei:TradingSymbol"}
+    titles = {r.section: next((t for t in r.text if t), None) for r in st.rows if r.tag == "dei:Security12bTitle"}
     out = []
     for r in st.rows_for("dei:EntityCommonStockSharesOutstanding"):
         vals = [st.scaled(r, i, "shares") for i in range(len(st.columns))]
         v = next((x for x in reversed(vals) if x is not None), None)
         if v is not None:
-            out.append((r.section or "Common stock", v, symbols.get(r.section)))
+            name = (titles.get(r.section) or r.section or "Common stock").split(",")[0]  # the security title, not the member label
+            out.append((name, v, symbols.get(r.section)))
     return out
 
 
@@ -115,9 +120,9 @@ def for_run(ticker: str, run, price_date: date, symbol_map: list[list[str]]) -> 
         get = getb = lambda m: ds.value(m, last)  # noqa: E731
         accession = ds.annual_filings[last]
         fcf = ds.value("fcf", last)
-    debt_parts = [getb(m) for m in ("debt_lt_noncurrent", "debt_lt_current", "finance_lease_liability")]
-    debt_parts.append(getb("commercial_paper"))  # missing is not zero: attest it in reviews/<T>/attestations.yaml
-    debt = None if None in debt_parts else sum(debt_parts)
+    parts = {m: getb(m) for m in ("debt_lt_noncurrent", "debt_lt_current", "finance_lease_liability", "commercial_paper")}
+    debt = None if None in parts.values() else sum(parts.values())  # missing is not zero; attest what a company lacks
+    missing_debt = [m for m, v in parts.items() if v is None]
     classes, notes = [], []
     for section, shares, printed in cover_classes(int(ds.company.cik), accession):
         if printed:
@@ -130,5 +135,11 @@ def for_run(ticker: str, run, price_date: date, symbol_map: list[list[str]]) -> 
         notes.append(note)
     m = compute(ticker, price_date, classes, window, bs.replace("AT", ""), get("net_income"), get("operating_income"), fcf,
                 debt, getb("preferred_equity"), getb("cash"), getb("st_investments"))
-    m.notes = notes + m.notes
+    m.notes = notes + ([f"debt component(s) not reported at {bs.replace('AT', '')}: {', '.join(missing_debt)}"]
+                       if missing_debt else []) + m.notes
+    head = classes[0]
+    eps = ds.value("eps_diluted", last)
+    m.fy_label = last
+    if eps and eps > 0:
+        m.pe_fy_eps = head.price / eps
     return m

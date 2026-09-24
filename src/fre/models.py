@@ -60,7 +60,8 @@ class Fact(BaseModel):
     metric: str
     value: float | None
     unit: str  # "USD", "USD/shares", "shares", "pure"
-    scale: int = 1  # presentation scale in the filing (1e6 for "$ in Millions"); values are stored unscaled
+    scale: int | None = None  # presentation scale in the filing (1e6 = "$ in Millions"), once a filed table
+    # verified it; None = unknown. Values are always stored unscaled.
     currency: str | None = "USD"  # None for share counts
     period_start: date | None  # None for balance-sheet (instant) facts
     period_end: date

@@ -1,13 +1,13 @@
 # Alphabet Inc. (GOOGL) — fundamentals dossier
 
-Fiscal years FY2021–FY2025 (fiscal year ends 12-31) · run `938e94993b83` · code `41bc18bd` (uncommitted changes) · created 2026-09-24T06:25:35+00:00
+Fiscal years FY2021–FY2025 (fiscal year ends 12-31) · run `a93e98d0a905` · code `286ad5a3` (uncommitted changes) · created 2026-09-24T06:42:27+00:00
 
 **Data vintage: current (latest restated filings).** Every figure below comes from SEC filings through pinned snapshots and deterministic Python. `fre verify-run` recomputes this run and proves the digest.
 
 ## Data quality
 
 - Facts: 134 derived, 29 missing, 178 reported
-- Reconciliation to filed statements: 2 from-notes, 116 matched, 45 matched-in-notes, 3 matched-in-text, 12 matched-negated, 22 not-checked
+- Reconciliation to filed statements: 2 from-notes, 116 matched, 45 matched-in-notes, 12 matched-negated, 22 not-checked, 3 text-candidate
 - Review queue: 0 blocking, 5 warnings
 - Ledger quotes verified against filing text: all
 
@@ -106,7 +106,7 @@ Debt policy: notes at carrying value + finance leases + commercial paper, every 
 
 ## Latest reported period (10-Q through 2026-06-30)
 
-Year-to-date values reconciled to the 10-Q statements (1 from-notes, 28 matched, 6 matched-in-notes, 5 matched-in-text, 5 matched-negated, 6 not-checked). TTM = last fiscal year + YTD - prior-year YTD, built only from reconciled inputs.
+Year-to-date values reconciled to the 10-Q statements (1 from-notes, 28 matched, 5 matched-in-notes, 5 matched-negated, 7 not-checked, 5 text-candidate). TTM = last fiscal year + YTD - prior-year YTD, built only from reconciled inputs.
 
 | Metric | YTD prior year | YTD current | Change | Latest quarter | TTM |
 |---|---:|---:|---:|---:|---:|
@@ -118,9 +118,9 @@ Year-to-date values reconciled to the 10-Q statements (1 from-notes, 28 matched,
 | Capex | $39.6bn | $80.6bn | +103.3% | $44.9bn* | $132.4bn |
 | Cash FCF (CFO - capex) | $24.3bn | $4.3bn | -82.4% | -$5.9bn* | $53.3bn |
 | Depreciation | $9.5bn | $13.6bn | +43.2% | $7.1bn* | $25.2bn |
-| SBC | $11.5bn | $14.7bn | +27.7% | $8.0bn | $28.1bn |
+| SBC | $11.5bn | $14.7bn | +27.7% | $8.0bn* | $28.1bn |
 | Buybacks | $28.3bn | $0 | -100.0% | $0* | $17.4bn |
-| Dividends to common | $5.0bn | $5.2bn | +5.1% | $2.7bn* | $10.3bn |
+| Dividends to common | $5.0bn | $5.2bn | +5.1% | — | $10.3bn |
 
 \* latest quarter derived as YTD minus the prior YTD (cash flow statements report year-to-date only).
 
@@ -206,14 +206,14 @@ Comparability:
 
 Market multiples (relative valuation; every share class counted):
 
-| Company | Trailing window | Price date | Market cap | P/E | EV/EBIT | FCF yield |
-|---|---|---|---:|---:|---:|---:|
-| GOOGL | TTM to 2026-06-30 | 2026-09-23 | $4,115.9bn | 16.9x | 27.1x | 1.29% |
-| MSFT | FY2026 | 2026-09-23 | $3,717.2bn | 27.8x | 24.1x | 1.80% |
-| META | TTM to 2026-06-30 | 2026-09-23 | $1,895.6bn | 27.8x | — | 2.16% |
-- GOOGL: 'Class A Common Stock' priced at its own trading symbol GOOGL (cover page); 'Class C share repurchases' priced at its own trading symbol GOOG (cover page); 'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping)
-- MSFT: 'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping)
-- META: 'Common Class A' priced at META (no trading symbol on the cover page; config mapping); 'Common Class B' priced at META (no trading symbol on the cover page; config mapping); EV not computed: debt not reported at the balance-sheet date; EV/EBIT: input missing
+| Company | Trailing window | Price date | Market cap | P/E (mkt cap / trailing NI) | P/E (price / FY diluted EPS) | EV/EBIT | FCF yield |
+|---|---|---|---:|---:|---:|---:|---:|
+| GOOGL | TTM to 2026-06-30 | 2026-09-23 | $4,115.9bn | 16.9x | 31.3x (FY2025) | 27.1x | 1.29% |
+| MSFT | FY2026 | 2026-09-23 | $3,717.2bn | 27.8x | 27.9x (FY2026) | 24.1x | 1.80% |
+| META | TTM to 2026-06-30 | 2026-09-23 | $1,895.6bn | 27.8x | 31.7x (FY2025) | — | 2.16% |
+- GOOGL: 'Class A Common Stock' priced at its own trading symbol GOOGL (cover page); 'Class C Capital Stock' priced at its own trading symbol GOOG (cover page); 'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping); EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities
+- MSFT: 'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping); EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities
+- META: 'Common Class A' priced at META (no trading symbol on the cover page; config mapping); 'Common Class B' priced at META (no trading symbol on the cover page; config mapping); debt component(s) not reported at 2026-06-30: finance_lease_liability; EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities; EV not computed: debt not reported at the balance-sheet date; EV/EBIT: input missing
 
 ## 7. Thesis and what would change it (team-owned)
 

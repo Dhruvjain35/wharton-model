@@ -55,6 +55,23 @@ def _assumption_table(cfg: dict) -> list[str]:
     return L
 
 
+def _unverified_bridge(run: ValuationRun) -> list[str]:
+    verified = ("matched", "matched-negated", "matched-in-notes")
+    pairs = list(run.bridge_items.items()) + [("shares_outstanding", run.shares["outstanding"]),
+                                              ("unvested_rsus", run.shares["unvested_rsus"])]
+    bad, by_quote = [], []
+    for key, v in pairs:
+        if "[reconciliation:" not in v.source or any(f"[reconciliation: {o}]" in v.source for o in verified):
+            continue
+        (by_quote if key in run.confirmed else bad).append(key)
+    L = []
+    if by_quote:
+        L.append(f"Confirmed by verified 10-Q quotes (not in a parsed table): {', '.join(by_quote)}.")
+    L.append(f"**Not verified (check by hand):** {', '.join(bad)}." if bad
+             else "Every balance-sheet input above is verified against the 10-Q (tables or quoted text).")
+    return L + [""]
+
+
 def markdown(run: ValuationRun, ev: dict) -> str:
     cfg, b = run.cfg, run.base
     px = {k: v[cfg["headline_class"]] for k, v in run.prices.items() if k != "risk_free"}
@@ -119,6 +136,7 @@ def markdown(run: ValuationRun, ev: dict) -> str:
         f"| ÷ Diluted shares | {b.inputs.bridge.diluted_shares / 1e6:,.0f}m | {run.shares['outstanding'].value / 1e6:,.0f}m outstanding + "
         f"{run.shares['unvested_rsus'].value / 1e6:,.0f}m unvested RSUs |",
         "",
+        *_unverified_bridge(run),
         "SBC stays inside operating margin and is not added back; existing RSUs are counted as shares; no separate "
         "future-dilution charge (PRD B3). Operating leases stay operating (lease cost inside margin, liability not in debt).",
         "",
@@ -163,9 +181,9 @@ def markdown(run: ValuationRun, ev: dict) -> str:
         "",
         "## Relative valuation cross-check (not averaged with the DCF)",
         "",
-        "| Company | Window | Price date | Market cap (all classes) | P/E | EV/EBIT | FCF yield |",
-        "|---|---|---|---:|---:|---:|---:|",
-        *[f"| {t} | {m.window} | {m.price_date} | {money(m.market_cap)} | {'—' if m.pe is None else f'{m.pe:.1f}x'} | "
+        "| Company | Window | Price date | Market cap (all classes) | P/E (mkt cap / trailing NI) | P/E (price / FY diluted EPS) | EV/EBIT | FCF yield |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
+        *[f"| {t} | {m.window} | {m.price_date} | {money(m.market_cap)} | {'—' if m.pe is None else f'{m.pe:.1f}x'} | {'—' if m.pe_fy_eps is None else f'{m.pe_fy_eps:.1f}x ({m.fy_label})'} | "
           f"{'—' if m.ev_ebit is None else f'{m.ev_ebit:.1f}x'} | {'—' if m.fcf_yield is None else f'{m.fcf_yield:.2%}'} |"
           for t, m in run.multiples.items()],
         "",

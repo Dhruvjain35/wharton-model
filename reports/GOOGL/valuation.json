@@ -28,12 +28,12 @@
     },
     "commercial_paper": {
       "label": "commercial_paper",
-      "source": "0001652044-26-000071 us-gaap:CommercialPaper at 2026-06-30 [reconciliation: from-notes]",
+      "source": "0001652044-26-000071 us-gaap:CommercialPaper at 2026-06-30 [reconciliation: text-candidate]",
       "value": 0.0
     },
     "debt_lt_current": {
       "label": "debt_lt_current",
-      "source": "0001652044-26-000071 us-gaap:LongTermDebtCurrent at 2026-06-30 [reconciliation: from-notes]",
+      "source": "0001652044-26-000071 us-gaap:LongTermDebtCurrent at 2026-06-30 [reconciliation: text-candidate]",
       "value": 1999000000.0
     },
     "debt_lt_noncurrent": {
@@ -43,7 +43,7 @@
     },
     "finance_lease_liability": {
       "label": "finance_lease_liability",
-      "source": "0001652044-26-000071 us-gaap:FinanceLeaseLiability at 2026-06-30 [reconciliation: from-notes]",
+      "source": "0001652044-26-000071 us-gaap:FinanceLeaseLiability at 2026-06-30 [reconciliation: matched-in-notes]",
       "value": 2590000000.0
     },
     "other_lt_investments": {
@@ -248,6 +248,32 @@
       }
     },
     "base_year": "FY2025",
+    "bridge_confirmations": {
+      "commercial_paper": {
+        "figure": "no commercial paper",
+        "quote": "We had no commercial paper outstanding as of December 31, 2025 and June 30, 2026",
+        "scale": 0,
+        "snapshot_id": "1b4e671893d74a58"
+      },
+      "debt_lt_current": {
+        "figure": "1,999",
+        "quote": "Less: current portion of long-term notes (3) ( 1,996 ) ( 1,999 )",
+        "scale": 1000000.0,
+        "snapshot_id": "1b4e671893d74a58"
+      },
+      "shares_outstanding": {
+        "figure": "12,230",
+        "quote": "12,230 (Class A 5,868 , Class B 835 , Class C 5,527 ) shares issued and outstanding",
+        "scale": 1000000.0,
+        "snapshot_id": "1b4e671893d74a58"
+      },
+      "unvested_rsus": {
+        "figure": "294",
+        "quote": "Unvested as of June 30, 2026 294",
+        "scale": 1000000.0,
+        "snapshot_id": "1b4e671893d74a58"
+      }
+    },
     "class_shares": {
       "class_a": {
         "priced_as": "GOOGL",
@@ -857,7 +883,7 @@
         {
           "price": 334.98,
           "price_date": "2026-09-23",
-          "section": "Class C share repurchases",
+          "section": "Class C Capital Stock",
           "shares": 5527000000.0,
           "symbol": "GOOG"
         },
@@ -881,14 +907,17 @@
       "ev_ebit": 27.0559240117051,
       "fcf": 53273000000.0,
       "fcf_yield": 0.012943192049960191,
+      "fy_label": "FY2025",
       "market_cap": 4115908950000.0,
       "net_income": 244205000000.0,
       "notes": [
         "'Class A Common Stock' priced at its own trading symbol GOOGL (cover page)",
-        "'Class C share repurchases' priced at its own trading symbol GOOG (cover page)",
-        "'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping)"
+        "'Class C Capital Stock' priced at its own trading symbol GOOG (cover page)",
+        "'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping)",
+        "EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities"
       ],
       "pe": 16.854318912389182,
+      "pe_fy_eps": 31.251618871415353,
       "price_date": "2026-09-23",
       "ticker": "GOOGL",
       "window": "TTM to 2026-06-30"
@@ -923,15 +952,19 @@
       "ev_ebit": null,
       "fcf": 40976000000.0,
       "fcf_yield": 0.021616381809684313,
+      "fy_label": "FY2025",
       "market_cap": 1895599382022.5002,
       "net_income": 68098000000.0,
       "notes": [
         "'Common Class A' priced at META (no trading symbol on the cover page; config mapping)",
         "'Common Class B' priced at META (no trading symbol on the cover page; config mapping)",
+        "debt component(s) not reported at 2026-06-30: finance_lease_liability",
+        "EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities",
         "EV not computed: debt not reported at the balance-sheet date",
         "EV/EBIT: input missing"
       ],
       "pe": 27.836344415731745,
+      "pe_fy_eps": 31.67730949340145,
       "price_date": "2026-09-23",
       "ticker": "META",
       "window": "TTM to 2026-06-30"
@@ -959,12 +992,15 @@
       "ev_ebit": 24.13856759238899,
       "fcf": 66987000000.0,
       "fcf_yield": 0.018021046018467313,
+      "fy_label": "FY2026",
       "market_cap": 3717153817339.69,
       "net_income": 133749000000.0,
       "notes": [
-        "'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping)"
+        "'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping)",
+        "EV = market cap + debt incl. finance leases + preferred at carrying value - cash - marketable securities"
       ],
       "pe": 27.792012032536242,
+      "pe_fy_eps": 27.888022284122563,
       "price_date": "2026-09-23",
       "ticker": "MSFT",
       "window": "FY2026"
@@ -993,7 +1029,7 @@
     "source": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R3.htm: + Accounts receivable, net 62,886m + Other current assets 16,309m - Accounts payable 12,200m - Accrued compensation and benefits 17,546m - Accrued expenses and other current liabilities 55,557m - Accrued revenue share 10,864m - Deferred revenue 6,578m + debt_lt_current 1,996m (financing item inside a subtracted line) + finance_lease_liability_current 441m (financing item inside a subtracted line) + commercial_paper 0m (financing item inside a subtracted line)",
     "value": -21113000000.0
   },
-  "outputs_digest": "ada69ef2f9d6eb26b2a33c623bd11e84741a21183ad8a17b3c9eea05032ea663",
+  "outputs_digest": "06e7ab8637b158bbe9b8ebdfaf00921fc5c89f819f013dd250c93a3f677033ed",
   "preferred_sensitivity": [
     {
       "basis": "liquidation preference",
@@ -1478,10 +1514,10 @@
   },
   "run": {
     "code_version": {
-      "commit": "41bc18bd3621575ae24967c206fc9e2d713e2a24",
+      "commit": "286ad5a3d81db0f98e5456ab0350d509832ec6a4",
       "dirty": true
     },
-    "created_at": "2026-09-24T06:26:09+00:00",
+    "created_at": "2026-09-24T06:43:03+00:00",
     "kind": "valuation",
     "snapshots_read": [
       "1b4e671893d74a58",
@@ -2119,7 +2155,7 @@
     },
     "unvested_rsus": {
       "label": "unvested_rsus",
-      "source": "0001652044-26-000071 us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsNonvestedNumber at 2026-06-30 [reconciliation: from-notes]",
+      "source": "0001652044-26-000071 us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsNonvestedNumber at 2026-06-30 [reconciliation: text-candidate]",
       "value": 294000000.0
     }
   },
