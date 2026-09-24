@@ -67,8 +67,11 @@ _SPECS = [
                ("ShareBasedCompensation", "AllocatedShareBasedCompensationExpense")),
     MetricSpec("buybacks", "Repurchases of common stock", "duration", "USD",
                ("PaymentsForRepurchaseOfCommonStock",)),
-    MetricSpec("dividends", "Dividends paid", "duration", "USD",
-               ("PaymentsOfDividends", "PaymentsOfDividendsCommonStock")),
+    MetricSpec("dividends", "Dividends paid to common", "duration", "USD",
+               ("PaymentsOfDividendsCommonStock", "PaymentsOfOrdinaryDividends", "PaymentsOfDividends"),
+               note="Common-specific tags first: once preferred stock exists, PaymentsOfDividends may include it."),
+    MetricSpec("preferred_dividends", "Preferred dividends paid", "duration", "USD",
+               ("DividendsPreferredStockCash", "PaymentsOfDividendsPreferredStockAndPreferenceStock"), optional=True),
     MetricSpec("cash_taxes", "Income taxes paid, net", "duration", "USD", ("IncomeTaxesPaidNet",)),
     # balance sheet
     MetricSpec("cash", "Cash and cash equivalents", "instant", "USD", ("CashAndCashEquivalentsAtCarryingValue",)),

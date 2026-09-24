@@ -147,3 +147,14 @@ def test_six_month_ytd_fact_matches_only_the_six_month_column():
     assert reconcile(ds, fetch=lambda c, a: [st])[0].outcome == "matched"
     g = f.model_copy(update={"value": 120_000e6})  # the 3-month value must not verify a 6-month fact
     assert reconcile(dataset(g), fetch=lambda c, a: [st])[0].outcome == "mismatch"
+
+
+def test_a_mismatched_fact_is_withheld_from_every_calculation():
+    from fre.fundamentals import compute
+    ds = dataset(fact("revenue", 400_000_000_000.0, "us-gaap:Revenues"))
+    reconcile(ds, fetch=fetch)
+    f = ds.fact("revenue", "FY2025")
+    assert f.value is None and f.status == FactStatus.CONFLICTING
+    assert sorted(f.candidates) == [400_000_000_000.0, 402_836e6]
+    compute(ds)
+    assert ds.value("operating_margin", "FY2025") is None

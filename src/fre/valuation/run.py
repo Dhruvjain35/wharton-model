@@ -81,6 +81,48 @@ def verify_quotes(cfg: dict) -> list[str]:
     return problems
 
 
+def figure_value(figure: str) -> float:
+    """The number a quoted figure states: '4.80 %' -> 0.048, '385 million' -> 385e6, '$ 50 ...' -> 50."""
+    import re
+
+    m = re.search(r"(-?\d[\d,]*(?:\.\d+)?)\s*(%|percent|billion|million|thousand)?", figure)
+    if not m:
+        raise ConfigError(f"no number in figure {figure!r}")
+    v = float(m.group(1).replace(",", ""))
+    scale = {"%": 0.01, "percent": 0.01, "billion": 1e9, "million": 1e6, "thousand": 1e3}.get(m.group(2) or "", 1.0)
+    return v * scale
+
+
+def check_sourced_values(cfg: dict) -> list[str]:
+    """The number the model uses must be the number printed in its quote."""
+    import re
+
+    problems = []
+    for name, s in (cfg.get("sourced") or {}).items():
+        try:
+            stated = figure_value(s["figure"])
+        except ConfigError as e:
+            problems.append(f"{name}: {e}")
+            continue
+        if abs(float(s["value"]) - stated) > 1e-9 * max(1.0, abs(stated)):
+            problems.append(f"{name}: value {s['value']} does not equal its quoted figure {s['figure']!r} ({stated:g})")
+    split = (cfg.get("sourced") or {}).get("class_split")
+    classes = cfg.get("class_shares") or {}
+    if classes:
+        quote = " ".join(split["quote"].split()) if split else ""
+        total = 0.0
+        for cname, c in classes.items():
+            letter = cname.split("_")[-1].upper()
+            m = re.search(rf"Class {letter} ([\d,]+)", quote)
+            shares = float(c["shares"])
+            total += shares
+            if not m or abs(float(m.group(1).replace(",", "")) * 1e6 - shares) > 0.5e6:
+                problems.append(f"{cname}: {shares:g} shares not stated as Class {letter} in the class_split quote")
+        if split and abs(total - float(split["value"]) * 1e6) > 1.5e6:
+            problems.append(f"class shares sum to {total:g}, but the quote states {split['value']} million")
+    return problems
+
+
 def _a(cfg: dict, name: str, which: str = "value"):
     return cfg["assumptions"][name][which]
 
@@ -155,7 +197,7 @@ def build_inputs(cfg: dict, base_revenue: float, nwc: float, bridge: Bridge, wac
 
 def run(ticker: str) -> ValuationRun:
     cfg = _load(ticker)
-    problems = validate(cfg) + verify_quotes(cfg)
+    problems = validate(cfg) + verify_quotes(cfg) + check_sourced_values(cfg)
     ids = lock()[ticker]
     cf = snapshot.load(ids["companyfacts"])
     cik = int(cf["cik"])
@@ -175,11 +217,19 @@ def run(ticker: str) -> ValuationRun:
     fin_extra = {m: ds.value(m, by) or 0.0 for m in cfg["operating_nwc"].get("add_back_financing", [])}
     nwc = operating_nwc(cfg, cik, ds.annual_filings[by], fy_end, fin_extra)
 
+    latest = fund.latest
+    if latest is None or fund.latest_labels.get("bs") != f"AT{vdate}":
+        raise ConfigError(f"valuation date {vdate} must be the latest 10-Q balance sheet date "
+                          f"({fund.latest_labels.get('bs', 'none')})")
+    recon = {r.fact: r.outcome for r in fund.latest_reconciliation}
+
     def bal(metric: str) -> Sourced:
-        f = instant(cf, metric, vdate)
-        if f.value is None:
-            raise ConfigError(f"{metric} at {vdate} is missing")
-        return Sourced(metric, f.value, f"{f.sources[0].accession} {f.sources[0].locator} at {vdate}")
+        key = f"{metric}@AT{vdate}"
+        f = latest.facts.get(key)
+        if f is None or f.value is None:
+            raise ConfigError(f"{metric} at {vdate} is missing or withheld by reconciliation")
+        return Sourced(metric, f.value, f"{f.sources[0].accession} {f.sources[0].locator} at {vdate} "
+                                        f"[reconciliation: {recon.get(key, 'n/a')}]")
 
     items = {m: bal(m) for m in ("cash", "st_investments", "other_lt_investments", "debt_lt_noncurrent",
                                  "debt_lt_current", "finance_lease_liability", "commercial_paper")}

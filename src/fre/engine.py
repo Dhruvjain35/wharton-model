@@ -33,11 +33,15 @@ class Run:
     eps_bridge: list[dict]
     eps_bridge_what_if: list[dict]
     config: dict
+    latest: Dataset | None = None  # YTD / prior YTD / TTM / balance sheet after the last 10-K
+    latest_labels: dict = field(default_factory=dict)
+    latest_reconciliation: list = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).replace(microsecond=0).isoformat())
 
     @property
     def blocking(self) -> list:
-        return [i for i in self.reported.review if i.severity == "block"]
+        extra = self.latest.review if self.latest is not None else []
+        return [i for i in self.reported.review + extra if i.severity == "block"]
 
 
 def default_years(ticker: str, n: int = 5) -> list[int]:
@@ -63,7 +67,13 @@ def build(ticker: str, years: list[int] | None = None, *, check_notes: bool = Tr
     problems = verify_ledger(ds, ticker)
     adjusted = compute(ledger.apply(ds, adjustments))
     what_if = compute(ledger.apply(ds, adjustments, statuses=("approved", "proposed")))
-    return Run(ticker=ticker, reported=ds, adjusted=adjusted, what_if=what_if, reconciliation=recon,
+    from . import snapshot
+    from .latest import build_latest
+    latest, latest_recon, latest_labels = build_latest(
+        ds, snapshot.load(ds.snapshot_ids["companyfacts"]), snapshot.load(ds.snapshot_ids["submissions"]),
+        primary_statements, note_details if check_notes else None)
+    return Run(latest=latest, latest_labels=latest_labels, latest_reconciliation=latest_recon,
+               ticker=ticker, reported=ds, adjusted=adjusted, what_if=what_if, reconciliation=recon,
                adjustments=adjustments, observations=observations, ledger_problems=problems,
                eps_bridge=bridge(ds), eps_bridge_what_if=bridge(what_if),
                config={"ticker": ticker, "fiscal_years": years, "check_notes": check_notes,

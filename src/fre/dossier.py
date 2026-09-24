@@ -183,6 +183,9 @@ def payload(run: Run) -> dict:
         "adjustments": [a.model_dump() | {"resulting": a.resulting} for a in run.adjustments],
         "observations": run.observations,
         "ledger_problems": run.ledger_problems,
+        "latest_labels": run.latest_labels,
+        "latest_facts": _fact_rows(run.latest, {r.fact: r for r in run.latest_reconciliation}) if run.latest else [],
+        "latest_reconciliation": [r.to_dict() for r in run.latest_reconciliation],
     }
     snapshots = sorted({*run.reported.snapshot_ids.values(), *(r.snapshot_id for r in run.reconciliation if r.snapshot_id)})
     return {
@@ -271,6 +274,7 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
         *[f"- **{o['id']}** ({', '.join(o['fiscal_labels'])}): {' '.join(o['note'].split())}" for o in run.observations],
         "",
     ]
+    L += _latest_section(run)
     if peers_md:
         L += ["## 6. How does it compare with comparable businesses?", "", peers_md, ""]
     L += ["## Review queue", ""]
@@ -287,6 +291,37 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
     L += ["", "Reported metrics map to XBRL tags: " + "; ".join(f"{m.id} = {', '.join(m.tags)}" for m in METRICS.values()), "",
           "Legend: † analyst-adjusted, ‼ conflicting, — missing or suppressed (see facts.csv notes for the reason).", ""]
     return "\n".join(L)
+
+
+LATEST_ROWS = [("revenue", "Revenue"), ("operating_income", "Operating income"), ("net_income", "Net income"),
+               ("equity_securities_gain", "Gains on equity securities"), ("cfo", "Operating cash flow"),
+               ("capex", "Capex"), ("fcf", "Cash FCF (CFO - capex)"), ("dna", "Depreciation"), ("sbc", "SBC"),
+               ("buybacks", "Buybacks"), ("dividends", "Dividends to common")]
+LATEST_BALANCE = [("cash", "Cash"), ("st_investments", "Marketable securities"),
+                  ("other_lt_investments", "Other long-term investments"), ("debt_lt_noncurrent", "Long-term debt"),
+                  ("debt_lt_current", "Current portion of debt"), ("finance_lease_liability", "Finance leases"),
+                  ("preferred_equity", "Preferred stock (carrying)"), ("equity", "Total equity")]
+
+
+def _latest_section(run: Run) -> list[str]:
+    if run.latest is None:
+        return ["## Latest reported period", "", "No 10-Q has been filed since the last 10-K in the pinned data.", ""]
+    ds, lab = run.latest, run.latest_labels
+    counts: dict[str, int] = {}
+    for r in run.latest_reconciliation:
+        counts[r.outcome] = counts.get(r.outcome, 0) + 1
+    L = [f"## Latest reported period (10-Q through {lab['cur'][3:]})", "",
+         "Year-to-date values reconciled to the 10-Q statements (" + ", ".join(f"{v} {k}" for k, v in sorted(counts.items()))
+         + "). TTM = last fiscal year + YTD - prior-year YTD, built only from reconciled inputs.", "",
+         "| Metric | YTD prior year | YTD current | Change | TTM |", "|---|---:|---:|---:|---:|"]
+    for m, name in LATEST_ROWS:
+        a, b, t = ds.value(m, lab["prior"]), ds.value(m, lab["cur"]), ds.value(m, lab["ttm"])
+        ch = pct(b / a - 1, True) if a and b is not None and a > 0 and b >= 0 else "—"
+        L.append(f"| {name} | {money(a)} | {money(b)} | {ch} | {money(t)} |")
+    L += ["", f"Balance sheet at {lab['bs'][2:]}:", "", "| Item | Amount |", "|---|---:|"]
+    L += [f"| {n} | {money(ds.value(m, lab['bs']))} |" for m, n in LATEST_BALANCE]
+    L += [f"| Common shares outstanding | {shares(ds.value('shares_outstanding', lab['bs']))} |", ""]
+    return L
 
 
 def write(run: Run, out_root: Path, peers_md: str = "") -> Path:

@@ -106,6 +106,13 @@ def reconcile(ds: Dataset, fetch=primary_statements, fetch_notes=None) -> list[R
 
     for r in records:
         metric, label = r.fact.split("@")
+        if r.outcome in ("mismatch", "ambiguous"):
+            # PRD section 8: an unreconciled input must not feed any calculation
+            f = ds.facts[r.fact]
+            ds.facts[r.fact] = f.model_copy(update={
+                "value": None, "status": FactStatus.CONFLICTING,
+                "candidates": sorted({f.value, r.found} - {None}),
+                "notes": f.notes + [f"Withheld: filed statement shows {r.found:g} on '{r.line}'"]})
         if r.outcome == "mismatch":
             ds.review.append(ReviewItem(severity="block", metric=metric, fiscal_label=label, kind="reconciliation",
                                         message=f"{r.fact}: normalized {r.expected:g} but '{r.line}' on {r.statement} shows {r.found:g}"))

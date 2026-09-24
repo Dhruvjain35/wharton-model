@@ -17,31 +17,30 @@ EVIDENCE_FLOWS = [("revenue", "Revenue"), ("operating_income", "Operating income
 
 
 def evidence(run: ValuationRun, cf: dict, fund) -> dict:
-    """History + latest YTD + TTM, all computed from reconciled facts."""
-    ds = fund.reported
-    end = run.valuation_date
-    start = date(end.year, 1, 1)
-    prior = (date(end.year - 1, 1, 1), date(end.year - 1, end.month, end.day))
-    fye = ds.company.fiscal_year_end
+    """History + latest YTD + TTM, read from the reconciled fundamentals run (never raw)."""
+    ds, lat, lab = fund.reported, fund.latest, fund.latest_labels
     rows = {}
     for m, name in EVIDENCE_FLOWS:
-        cur, pri, t = ytd(cf, m, start, end), ytd(cf, m, *prior), ttm(cf, m, end, fye)
-        rows[m] = {"name": name, "history": {lab: ds.value(m, lab) for lab in ds.labels},
-                   "ytd": cur.value, "ytd_prior": pri.value, "ttm": t.value}
+        rows[m] = {"name": name, "history": {l: ds.value(m, l) for l in ds.labels},
+                   "ytd": lat.value(m, lab["cur"]), "ytd_prior": lat.value(m, lab["prior"]),
+                   "ttm": lat.value(m, lab["ttm"])}
+
+    def div(a, b):
+        return a / b if a is not None and b else None
+
     rev = rows["revenue"]
     ratios = {
-        "revenue_growth_ytd": (rev["ytd"] / rev["ytd_prior"] - 1) if rev["ytd"] and rev["ytd_prior"] else None,
-        "operating_margin_ytd": rows["operating_income"]["ytd"] / rev["ytd"] if rev["ytd"] else None,
-        "operating_margin_ttm": rows["operating_income"]["ttm"] / rev["ttm"] if rev["ttm"] else None,
-        "capex_intensity_ytd": rows["capex"]["ytd"] / rev["ytd"] if rev["ytd"] else None,
-        "capex_intensity_ttm": rows["capex"]["ttm"] / rev["ttm"] if rev["ttm"] else None,
-        "dna_intensity_ytd": rows["dna"]["ytd"] / rev["ytd"] if rev["ytd"] else None,
-        "equity_gains_share_of_net_income_ytd": rows["equity_securities_gain"]["ytd"] / rows["net_income"]["ytd"]
-        if rows["net_income"]["ytd"] else None,
-        "cash_fcf_ytd": (rows["cfo"]["ytd"] - rows["capex"]["ytd"]) if rows["cfo"]["ytd"] is not None and rows["capex"]["ytd"] is not None else None,
-        "cash_fcf_ytd_prior": (rows["cfo"]["ytd_prior"] - rows["capex"]["ytd_prior"]) if rows["cfo"]["ytd_prior"] is not None and rows["capex"]["ytd_prior"] is not None else None,
+        "revenue_growth_ytd": div(rev["ytd"], rev["ytd_prior"]) - 1 if div(rev["ytd"], rev["ytd_prior"]) is not None else None,
+        "operating_margin_ytd": div(rows["operating_income"]["ytd"], rev["ytd"]),
+        "operating_margin_ttm": div(rows["operating_income"]["ttm"], rev["ttm"]),
+        "capex_intensity_ytd": div(rows["capex"]["ytd"], rev["ytd"]),
+        "capex_intensity_ttm": div(rows["capex"]["ttm"], rev["ttm"]),
+        "dna_intensity_ytd": div(rows["dna"]["ytd"], rev["ytd"]),
+        "equity_gains_share_of_net_income_ytd": div(rows["equity_securities_gain"]["ytd"], rows["net_income"]["ytd"]),
+        "cash_fcf_ytd": lat.value("fcf", lab["cur"]),
+        "cash_fcf_ytd_prior": lat.value("fcf", lab["prior"]),
     }
-    return {"period_end": str(end), "labels": ds.labels, "rows": rows, "ratios": ratios}
+    return {"period_end": lab["cur"][3:], "labels": ds.labels, "rows": rows, "ratios": ratios}
 
 
 def _assumption_table(cfg: dict) -> list[str]:
