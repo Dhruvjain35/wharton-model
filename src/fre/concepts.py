@@ -21,6 +21,7 @@ class MetricSpec:
     tags: tuple[str, ...]
     share_basis: bool = False  # per-share or share-count values move with stock splits
     note: str = ""
+    optional: bool = False  # an alternative presentation; missing is expected for some companies
 
 
 _SPECS = [
@@ -30,14 +31,14 @@ _SPECS = [
     MetricSpec("cost_of_revenue", "Cost of revenue", "duration", "USD",
                ("CostOfRevenue", "CostOfGoodsAndServicesSold")),
     MetricSpec("gross_profit", "Gross profit (as reported)", "duration", "USD", ("GrossProfit",),
-               note="Only when the company reports it. Revenue minus cost of revenue is kept as a separate derived metric."),
+               note="Only when the company reports it. Revenue minus cost of revenue is kept as a separate derived metric.", optional=True),
     MetricSpec("rnd", "Research and development", "duration", "USD", ("ResearchAndDevelopmentExpense",)),
     MetricSpec("operating_income", "Operating income", "duration", "USD", ("OperatingIncomeLoss",)),
     MetricSpec("nonoperating_income", "Other income (expense), net", "duration", "USD",
                ("NonoperatingIncomeExpense", "OtherNonoperatingIncomeExpense")),
     MetricSpec("equity_securities_gain", "Gains (losses) on equity securities", "duration", "USD",
                ("EquitySecuritiesFvNiGainLoss",),
-               note="Nonoperating mark-to-market gains that flow through net income."),
+               note="Nonoperating mark-to-market gains that flow through net income.", optional=True),
     MetricSpec("pretax_income", "Income before income taxes", "duration", "USD",
                ("IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
                 "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments")),
@@ -46,7 +47,7 @@ _SPECS = [
                note="The face-statement net income line."),
     MetricSpec("net_income_to_common", "Net income available to common (EPS numerator)", "duration", "USD",
                ("NetIncomeLossAvailableToCommonStockholdersBasic",),
-               note="Differs from net income when preferred dividends or participating securities exist."),
+               note="Differs from net income when preferred dividends or participating securities exist.", optional=True),
     MetricSpec("eps_basic", "Basic EPS", "duration", "USD/shares", ("EarningsPerShareBasic",), share_basis=True),
     MetricSpec("eps_diluted", "Diluted EPS", "duration", "USD/shares", ("EarningsPerShareDiluted",), share_basis=True),
     MetricSpec("shares_basic", "Weighted-average basic shares", "duration", "shares",
@@ -73,17 +74,17 @@ _SPECS = [
     MetricSpec("cash", "Cash and cash equivalents", "instant", "USD", ("CashAndCashEquivalentsAtCarryingValue",)),
     MetricSpec("st_investments", "Marketable securities (current)", "instant", "USD",
                ("MarketableSecuritiesCurrent", "ShortTermInvestments", "AvailableForSaleSecuritiesDebtSecuritiesCurrent")),
-    MetricSpec("debt_lt_noncurrent", "Long-term debt, noncurrent", "instant", "USD", ("LongTermDebtNoncurrent",)),
+    MetricSpec("debt_lt_noncurrent", "Long-term debt, noncurrent", "instant", "USD", ("LongTermDebtNoncurrent",), optional=True),
     MetricSpec("debt_lt_current", "Long-term debt, current portion", "instant", "USD", ("LongTermDebtCurrent",)),
     MetricSpec("debt_and_finance_lease_noncurrent", "Long-term debt incl. finance leases, noncurrent", "instant", "USD",
                ("LongTermDebtAndCapitalLeaseObligations",),
                note="Alphabet's balance-sheet debt line through the FY2023 10-K; it includes finance leases. "
-                    "The generic LongTermDebt tag is excluded: its meaning changed between Alphabet filings."),
+                    "The generic LongTermDebt tag is excluded: its meaning changed between Alphabet filings.", optional=True),
     MetricSpec("commercial_paper", "Commercial paper", "instant", "USD", ("CommercialPaper",)),
     MetricSpec("operating_lease_liability", "Operating lease liabilities", "instant", "USD", ("OperatingLeaseLiability",)),
     MetricSpec("finance_lease_liability", "Finance lease liabilities", "instant", "USD", ("FinanceLeaseLiability",)),
     MetricSpec("finance_lease_liability_current", "Finance lease liabilities, current", "instant", "USD",
-               ("FinanceLeaseLiabilityCurrent",)),
+               ("FinanceLeaseLiabilityCurrent",), optional=True),
     MetricSpec("accounts_receivable", "Accounts receivable, net", "instant", "USD", ("AccountsReceivableNetCurrent",)),
     MetricSpec("assets", "Total assets", "instant", "USD", ("Assets",)),
     MetricSpec("liabilities", "Total liabilities", "instant", "USD", ("Liabilities",)),

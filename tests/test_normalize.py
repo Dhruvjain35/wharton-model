@@ -182,3 +182,40 @@ def test_difference_larger_than_the_rounding_unit_still_warns():
     ]))
     ds = run(cf, years=[2023])
     assert any(i.kind == "restated" and i.severity == "warn" for i in ds.review)
+
+
+def test_annual_filings_come_from_companyfacts_not_the_truncated_recent_list():
+    from fre.normalize import annual_accessions
+    cf = facts(Revenues=("USD", [
+        obs(90.0, "2020-01-01", "2020-12-31", "k-21", "2021-02-02"),   # FY2020 10-K reports FY2020...
+        obs(80.0, "2019-01-01", "2019-12-31", "k-21", "2021-02-02"),   # ...and prior years
+        obs(100.0, "2021-01-01", "2021-12-31", "k-22", "2022-02-01"),
+        obs(90.0, "2020-01-01", "2020-12-31", "k-22", "2022-02-01"),
+    ]))
+    assert annual_accessions(cf, "1231") == {2020: "k-21", 2021: "k-22"}
+    ds = run(cf, years=[2021])
+    assert ds.annual_filings["FY2021"] == "k-22"   # SUBS has an empty recent list
+
+
+def test_a_subsequent_event_date_does_not_hide_the_annual_filing():
+    from fre.normalize import annual_accessions
+    cf = facts(Revenues=("USD", [obs(100.0, "2021-01-01", "2021-12-31", "k-22", "2022-02-01")]),
+               StockRepurchaseProgramAuthorizedAmount1=("USD", [obs(70e9, None, "2022-01-28", "k-22", "2022-02-01")]))
+    assert annual_accessions(cf, "1231") == {2021: "k-22"}
+
+
+def test_a_later_rounded_disclosure_does_not_replace_the_precise_statement_value():
+    cf = facts(IncomeTaxesPaidNet=("USD", [
+        obs(18_892_000_000.0, "2022-01-01", "2022-12-31", "a-23", "2023-02-03"),
+        obs(18_900_000_000.0, "2022-01-01", "2022-12-31", "a-26", "2026-02-05"),
+    ]))
+    f = run(cf, years=[2022]).fact("cash_taxes", "FY2022")
+    assert f.value == 18_892_000_000.0
+    assert f.sources[0].accession == "a-23"
+    assert any("precise" in n for n in f.notes)
+
+
+def test_missing_optional_alternative_metric_is_info_not_warning():
+    ds = run(facts(Revenues=("USD", [])), years=[2021])
+    items = [i for i in ds.review if i.metric == "gross_profit"]
+    assert items and all(i.severity == "info" for i in items)

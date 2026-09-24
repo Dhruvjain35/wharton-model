@@ -67,7 +67,7 @@ def info(sid: str) -> dict:
     return _load_manifest()[sid]
 
 
-def fetch(url: str) -> str:
+def fetch(url: str, headers: dict | None = None) -> str:
     """Download once; a URL already in the manifest is served from its snapshot."""
     import requests
 
@@ -75,7 +75,7 @@ def fetch(url: str) -> str:
         if meta["url"] == url and (SNAPSHOT_DIR / f"{sid}.gz").exists() and not url.startswith(SEC_BASE):
             return sid  # filing archives are immutable; only the live company APIs are re-downloaded
 
-    resp = requests.get(url, headers={"User-Agent": _user_agent()}, timeout=60)
+    resp = requests.get(url, headers=headers or {"User-Agent": _user_agent()}, timeout=60)
     resp.raise_for_status()
     time.sleep(0.15)  # stay well under SEC's 10 requests/second fair-access limit
     return store(resp.content, url)

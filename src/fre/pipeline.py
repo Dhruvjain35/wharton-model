@@ -41,8 +41,8 @@ def refresh(ticker: str) -> dict[str, str]:
     return ids
 
 
-def load(ticker: str, fiscal_years: list[int]) -> Dataset:
-    ids = lock()[ticker]
+def load(ticker: str, fiscal_years: list[int], snapshot_ids: dict[str, str] | None = None) -> Dataset:
+    ids = snapshot_ids or lock()[ticker]
     cf, subs = snapshot.load(ids["companyfacts"]), snapshot.load(ids["submissions"])
     return normalize(cf, subs, snapshot_ids=ids, retrieved_at=snapshot.info(ids["companyfacts"])["retrieved_at"],
                      actions=actions_for(ticker), fiscal_years=fiscal_years)

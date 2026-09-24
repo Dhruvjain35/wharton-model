@@ -1,0 +1,15 @@
+# Components Meta does not present. Each becomes 0 only if the engine verifies, per
+# year, that no XBRL fact, statement line or note detail row shows it.
+zero_if_not_presented:
+  - metric: debt_lt_current
+    fiscal_labels: [FY2021, FY2022, FY2023, FY2024, FY2025]
+    absent_label_pattern: (?i)current portion of (long-term )?debt|short-term debt|short-term borrowings
+    rationale: No current portion of debt is presented; all notes are classified long-term.
+  - metric: commercial_paper
+    fiscal_labels: [FY2021, FY2022, FY2023, FY2024, FY2025]
+    absent_label_pattern: (?i)commercial paper
+    rationale: No commercial paper program balance is presented.
+  - metric: dividends
+    fiscal_labels: [FY2021]
+    absent_label_pattern: (?i)dividend
+    rationale: No dividend payments line in FY2021.

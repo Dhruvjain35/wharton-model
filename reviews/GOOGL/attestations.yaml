@@ -1,0 +1,5 @@
+zero_if_not_presented:
+  - metric: dividends
+    fiscal_labels: [FY2021]
+    absent_label_pattern: (?i)dividend payments|dividends paid
+    rationale: Alphabet paid its first dividend in June 2024 (10-K FY2024); no FY2021 dividend line.

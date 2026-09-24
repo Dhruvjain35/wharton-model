@@ -41,6 +41,7 @@ class Dataset:
     facts: dict[str, Fact] = field(default_factory=dict)
     review: list[ReviewItem] = field(default_factory=list)
     actions: list[CorporateAction] = field(default_factory=list)
+    annual_filings: dict[str, str] = field(default_factory=dict)  # "FY2025" -> accession of that year's 10-K
 
     @property
     def labels(self) -> list[str]:
@@ -140,6 +141,29 @@ def _latest_value_for_tag(gaap: dict, tag: str, spec: MetricSpec, fye: str, year
     return next(iter(vals)) if len(vals) == 1 else None
 
 
+def annual_accessions(companyfacts: dict, fye: str) -> dict[int, str]:
+    """Each fiscal year's own 10-K: the annual filing whose latest reported period ends on that year's FYE.
+
+    Built from Company Facts, which lists every filing; the submissions 'recent' list is
+    truncated to roughly the last thousand filings and can miss older 10-Ks entirely.
+    """
+    latest_fy: dict[str, int] = {}
+    for tag in companyfacts["facts"].get("us-gaap", {}).values():
+        for obs_list in tag.get("units", {}).values():
+            for o in obs_list:
+                if o.get("form") not in ANNUAL_FORMS:
+                    continue
+                e = _d(o["end"])
+                for year in (e.year - 1, e.year, e.year + 1):
+                    # only fiscal-year-end dates count; subsequent-event dates are ignored
+                    if abs((e - _fye_end(fye, year)).days) <= FYE_TOLERANCE_DAYS:
+                        latest_fy[o["accn"]] = max(latest_fy.get(o["accn"], year), year)
+    out: dict[int, str] = {}
+    for accn, year in sorted(latest_fy.items()):
+        out.setdefault(year, accn)  # original 10-K before any amendment
+    return out
+
+
 def normalize(
     companyfacts: dict,
     submissions: dict,
@@ -162,6 +186,9 @@ def normalize(
     )
     gaap = companyfacts["facts"].get("us-gaap", {})
     ds = Dataset(company=company, fiscal_years=sorted(fiscal_years), snapshot_ids=snapshot_ids, actions=actions)
+    for year, accn in annual_accessions(companyfacts, fye).items():
+        if year in ds.fiscal_years:
+            ds.annual_filings[f"FY{year}"] = accn
 
     for spec in metrics.values():
         tags_used: dict[int, str] = {}
@@ -173,8 +200,10 @@ def normalize(
                 ds.add(Fact(company=company.cik, metric=spec.id, value=None, unit=spec.unit,
                             period_start=None, period_end=end, fiscal_label=label, status=FactStatus.MISSING,
                             notes=[f"No annual 10-K observation under {', '.join(spec.tags)}"]))
-                ds.review.append(ReviewItem(severity="warn", metric=spec.id, fiscal_label=label, kind="missing",
-                                            message=f"{spec.label} {label}: not found under any mapped tag"))
+                ds.review.append(ReviewItem(severity="info" if spec.optional else "warn", metric=spec.id,
+                                            fiscal_label=label, kind="missing",
+                                            message=f"{spec.label} {label}: not found under any mapped tag"
+                                                    + (" (alternative presentation; expected for some filers)" if spec.optional else "")))
                 continue
             tags_used[year] = tag
             ds.add(_build_fact(ds, spec, tag, found, label, cik, primary_docs, snapshot_ids, retrieved_at, actions))
@@ -229,6 +258,21 @@ def _build_fact(ds, spec, tag, found, label, cik, primary_docs, snapshot_ids, re
                 reason = "unexplained"
             restated.append(Restatement(accession=accn, filed=old_filed, value=old, reason=reason))
     restated.sort(key=lambda r: r.filed)
+    notes: list[str] = []
+    # A later filing that only rounds an earlier precise value (e.g. "$18.9 billion" for 18,892m)
+    # must not replace the statement figure: keep the most precise disclosure.
+    precise = [r for r in restated if r.reason.startswith("precision") and _rounding_unit(r.value) < _rounding_unit(raw)]
+    if precise:
+        best = min(precise, key=lambda r: (_rounding_unit(r.value), -r.filed.toordinal()))
+        restated = [r for r in restated if r is not best] + [Restatement(
+            accession=latest_accn, filed=filed, value=raw, reason="precision difference: later disclosure is rounded")]
+        restated.sort(key=lambda r: r.filed)
+        raw = value = best.value
+        latest_accn, filed = best.accession, best.filed
+        src = src.model_copy(update={"accession": latest_accn, "filed": filed,
+                                     "url": _filing_url(cik, latest_accn, primary_docs)})
+        base["sources"] = [src]
+        notes.append(f"Kept the precise value from {latest_accn}; a later filing states it rounded")
     for r in restated:
         explained = r.reason != "unexplained"
         ds.review.append(ReviewItem(
@@ -245,7 +289,7 @@ def _build_fact(ds, spec, tag, found, label, cik, primary_docs, snapshot_ids, re
                     formula=f"reported {raw:g} {op} {factor:g} (split effective "
                             + ", ".join(str(a.effective) for a in splits) + ")",
                     notes=["Rebased to the post-split share basis"])
-    return Fact(**base, value=value, status=FactStatus.REPORTED, restated_from=restated)
+    return Fact(**base, value=value, status=FactStatus.REPORTED, restated_from=restated, notes=notes)
 
 
 def _tag_switch_item(gaap, spec, fye, tags_used: dict[int, str]) -> ReviewItem:

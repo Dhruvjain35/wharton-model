@@ -31,8 +31,7 @@ class Column:
 class Row:
     label: str
     tag: str  # "us-gaap:Revenues"
-    unit: str
-    values: list[float | None]
+    raw: list[float | None]  # as printed; scale depends on the fact's unit
 
 
 @dataclass
@@ -42,6 +41,23 @@ class Statement:
     rows: list[Row] = field(default_factory=list)
     url: str = ""
     snapshot_id: str = ""
+    usd_scale: float = 1.0
+    share_scale: float = 1.0
+
+    @property
+    def is_cash_flow(self) -> bool:
+        return "CASH FLOW" in self.title.upper()
+
+    def scaled(self, row: Row, i: int, unit: str) -> float | None:
+        """Printed value in the fact's unit. Rows do not say their unit; the XBRL fact does."""
+        v = row.raw[i] if i < len(row.raw) else None
+        if v is None:
+            return None
+        if unit == "USD":
+            return v * self.usd_scale
+        if unit == "shares":
+            return v * self.share_scale
+        return v
 
     def rows_for(self, tag: str) -> list[Row]:
         return [r for r in self.rows if r.tag == tag]
@@ -115,7 +131,7 @@ def parse_r_page(raw: bytes) -> Statement:
         columns = [Column(months, d) for months, d in zip(spans, dates) if d]
         body = trs[2:]
 
-    st = Statement(title=title, columns=columns)
+    st = Statement(title=title, columns=columns, usd_scale=usd_scale, share_scale=share_scale)
     for tr in body:
         if 'class="r' not in tr[:40]:
             continue
@@ -123,22 +139,23 @@ def parse_r_page(raw: bytes) -> Statement:
         cells = _cells(tr)
         if not tag or len(cells) < 2:
             continue
-        label = cells[0][0]
-        if "per share" in label or "$ / shares" in label:
-            unit, scale = "USD/shares", 1.0
-        elif "(in shares)" in label:
-            unit, scale = "shares", share_scale
-        else:
-            unit, scale = "USD", usd_scale
         vals = [_number(c) for c, _ in cells[1:1 + len(columns)]]
-        vals = [None if v is None else v * scale for v in vals]
         if any(v is not None for v in vals):
-            st.rows.append(Row(label=label, tag=f"{tag.group(1)}:{tag.group(2)}", unit=unit, values=vals))
+            st.rows.append(Row(label=cells[0][0], tag=f"{tag.group(1)}:{tag.group(2)}", raw=vals))
     return st
 
 
 def primary_statements(cik: int, accession: str) -> list[Statement]:
-    """Fetch (or reuse snapshots of) the balance sheet, income statement and cash flow."""
+    """Fetch (or reuse snapshots of) the balance sheet, income statement, cash flow and equity statement."""
+    return _reports(cik, accession, primary=True)
+
+
+def note_details(cik: int, accession: str) -> list[Statement]:
+    """The 'Details' pages: note tables with tagged values (debt, leases, EPS, cash taxes...)."""
+    return _reports(cik, accession, primary=False)
+
+
+def _reports(cik: int, accession: str, primary: bool) -> list[Statement]:
     folder = f"{ARCHIVES}/{cik}/{accession.replace('-', '')}"
     summary = snapshot.load_bytes(snapshot.fetch(f"{folder}/FilingSummary.xml")).decode("utf-8", "replace")
     out = []
@@ -146,14 +163,20 @@ def primary_statements(cik: int, accession: str) -> list[Statement]:
         name = re.search(r"<ShortName>(.*?)</ShortName>", rep, re.S)
         fname = re.search(r"<HtmlFileName>(.*?)</HtmlFileName>", rep, re.S)
         cat = re.search(r"<MenuCategory>(.*?)</MenuCategory>", rep, re.S)
-        if not (name and fname and cat) or cat.group(1) != "Statements":
+        if not (name and fname and cat):
             continue
         short = html.unescape(name.group(1)).upper()
-        if "PARENTHETICAL" in short or not any(k in short for k in PRIMARY):
+        if primary:
+            if cat.group(1) != "Statements" or "PARENTHETICAL" in short or not any(k in short for k in PRIMARY):
+                continue
+        elif cat.group(1) != "Details":
             continue
         url = f"{folder}/{fname.group(1)}"
         sid = snapshot.fetch(url)
-        st = parse_r_page(snapshot.load_bytes(sid))
+        try:
+            st = parse_r_page(snapshot.load_bytes(sid))
+        except (IndexError, AttributeError, KeyError):
+            continue  # a layout the parser does not understand is skipped, never guessed at
         st.url, st.snapshot_id = url, sid
         out.append(st)
     return out

@@ -1,0 +1,5 @@
+zero_if_not_presented:
+  - metric: commercial_paper
+    fiscal_labels: [FY2022, FY2026]
+    absent_label_pattern: (?i)commercial paper
+    rationale: No commercial paper balance presented at these fiscal year ends.

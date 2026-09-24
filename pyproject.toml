@@ -1,7 +1,7 @@
 [project]
 name = "fre"
 version = "0.1.0"
-description = "Add your description here"
+description = "Fundamentals research engine: source-backed company research with deterministic calculations"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -13,6 +13,9 @@ dependencies = [
     "requests>=2.34.2",
     "scipy>=1.18.1",
 ]
+
+[project.scripts]
+fre = "fre.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.11.19,<0.12.0"]
