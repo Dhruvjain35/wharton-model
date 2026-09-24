@@ -1,0 +1,127 @@
+{
+  "047979c14880ea1d": {
+    "bytes": 55785,
+    "retrieved_at": "2026-09-24T05:13:28+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/FilingSummary.xml"
+  },
+  "105620ccc92c907a": {
+    "bytes": 90293,
+    "retrieved_at": "2026-09-24T05:13:26+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/R9.htm"
+  },
+  "1f4c2a70c730faf6": {
+    "bytes": 91014,
+    "retrieved_at": "2026-09-24T05:13:30+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204422000019/R9.htm"
+  },
+  "28f1932883235eb7": {
+    "bytes": 112597,
+    "retrieved_at": "2026-09-24T05:13:28+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/R3.htm"
+  },
+  "2ca608fce234eb08": {
+    "bytes": 66574,
+    "retrieved_at": "2026-09-24T05:13:28+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/R5.htm"
+  },
+  "33af2ecc4969a7ca": {
+    "bytes": 69408,
+    "retrieved_at": "2026-09-24T05:13:30+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204422000019/R5.htm"
+  },
+  "35656da902a69351": {
+    "bytes": 55728,
+    "retrieved_at": "2026-09-24T05:13:27+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/FilingSummary.xml"
+  },
+  "3ff9a14798c60604": {
+    "bytes": 54562,
+    "retrieved_at": "2026-09-24T05:13:26+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/FilingSummary.xml"
+  },
+  "551ff75d16e89942": {
+    "bytes": 185250,
+    "retrieved_at": "2026-09-24T05:10:29+00:00",
+    "url": "https://data.sec.gov/submissions/CIK0000789019.json"
+  },
+  "5d174dc990021dfc": {
+    "bytes": 56274,
+    "retrieved_at": "2026-09-24T05:13:30+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204422000019/FilingSummary.xml"
+  },
+  "7518e76d6dac2d01": {
+    "bytes": 2746680,
+    "retrieved_at": "2026-09-24T05:10:30+00:00",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json"
+  },
+  "76dc04e03cef3236": {
+    "bytes": 88871,
+    "retrieved_at": "2026-09-24T05:13:27+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/R9.htm"
+  },
+  "855c492f87b2a1c9": {
+    "bytes": 157754,
+    "retrieved_at": "2026-09-24T05:10:30+00:00",
+    "url": "https://data.sec.gov/submissions/CIK0001326801.json"
+  },
+  "87ebac1b79309c4b": {
+    "bytes": 95259,
+    "retrieved_at": "2026-09-24T05:13:29+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R10.htm"
+  },
+  "8fd05f600ea1912a": {
+    "bytes": 114198,
+    "retrieved_at": "2026-09-24T05:13:26+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/R3.htm"
+  },
+  "9624fe558574d3c3": {
+    "bytes": 154521,
+    "retrieved_at": "2026-09-24T05:10:27+00:00",
+    "url": "https://data.sec.gov/submissions/CIK0001652044.json"
+  },
+  "a017f26ee88cb4a6": {
+    "bytes": 3164517,
+    "retrieved_at": "2026-09-24T05:10:27+00:00",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json"
+  },
+  "b781ceed3ccadc6b": {
+    "bytes": 118452,
+    "retrieved_at": "2026-09-24T05:13:29+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R3.htm"
+  },
+  "b8406f9d30cddb1e": {
+    "bytes": 86671,
+    "retrieved_at": "2026-09-24T05:13:28+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/R9.htm"
+  },
+  "bc4fd4a08d3cb7c6": {
+    "bytes": 62739,
+    "retrieved_at": "2026-09-24T05:13:27+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/R5.htm"
+  },
+  "bd48a00d3e439a22": {
+    "bytes": 56168,
+    "retrieved_at": "2026-09-24T05:13:25+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/FilingSummary.xml"
+  },
+  "c7a8e275633b3982": {
+    "bytes": 63501,
+    "retrieved_at": "2026-09-24T05:13:25+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/R5.htm"
+  },
+  "cec422360f77a95d": {
+    "bytes": 81526,
+    "retrieved_at": "2026-09-24T05:13:29+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R5.htm"
+  },
+  "da4256b3303c585e": {
+    "bytes": 120646,
+    "retrieved_at": "2026-09-24T05:13:25+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/R3.htm"
+  },
+  "f8aae2965b20ad0d": {
+    "bytes": 4881196,
+    "retrieved_at": "2026-09-24T05:10:29+00:00",
+    "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json"
+  }
+}

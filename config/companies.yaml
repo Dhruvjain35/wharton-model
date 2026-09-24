@@ -1,0 +1,21 @@
+# Supported companies. Every corporate action cites the filing that establishes it.
+GOOGL:
+  cik: "0001652044"
+  role: pilot
+  corporate_actions:
+    - kind: split
+      ratio: 20
+      effective: 2022-07-15
+      source: >-
+        10-K FY2022 (accession 0001652044-23-000016), MD&A: "On July 15, 2022, the company
+        executed a 20-for-one stock split with a record date of July 1, 2022, effected in the
+        form of a one-time special stock dividend on each share of the company's Class A,
+        Class B, and Class C stock." Also us-gaap:StockholdersEquityNoteStockSplitConversionRatio1 = 20.
+MSFT:
+  cik: "0000789019"
+  role: peer
+  corporate_actions: []
+META:
+  cik: "0001326801"
+  role: peer
+  corporate_actions: []
