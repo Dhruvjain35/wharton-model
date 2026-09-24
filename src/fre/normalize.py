@@ -42,6 +42,8 @@ class Dataset:
     review: list[ReviewItem] = field(default_factory=list)
     actions: list[CorporateAction] = field(default_factory=list)
     annual_filings: dict[str, str] = field(default_factory=dict)  # "FY2025" -> accession of that year's 10-K
+    filing_dates: dict[str, date] = field(default_factory=dict)  # accession -> filing date
+    as_of: date | None = None  # point-in-time run: only filings made on or before this date
 
     @property
     def labels(self) -> list[str]:
@@ -141,6 +143,17 @@ def _latest_value_for_tag(gaap: dict, tag: str, spec: MetricSpec, fye: str, year
     return next(iter(vals)) if len(vals) == 1 else None
 
 
+def _filed_by(companyfacts: dict, as_of: date) -> dict:
+    out = {k: v for k, v in companyfacts.items() if k != "facts"}
+    out["facts"] = {}
+    for ns, tags in companyfacts["facts"].items():
+        out["facts"][ns] = {}
+        for tag, body in tags.items():
+            units = {u: [o for o in obs if _d(o["filed"]) <= as_of] for u, obs in body.get("units", {}).items()}
+            out["facts"][ns][tag] = {**body, "units": units}
+    return out
+
+
 def annual_accessions(companyfacts: dict, fye: str) -> dict[int, str]:
     """Each fiscal year's own 10-K: the annual filing whose latest reported period ends on that year's FYE.
 
@@ -148,6 +161,7 @@ def annual_accessions(companyfacts: dict, fye: str) -> dict[int, str]:
     truncated to roughly the last thousand filings and can miss older 10-Ks entirely.
     """
     latest_fy: dict[str, int] = {}
+    filed = filing_dates(companyfacts)
     for tag in companyfacts["facts"].get("us-gaap", {}).values():
         for obs_list in tag.get("units", {}).values():
             for o in obs_list:
@@ -159,8 +173,18 @@ def annual_accessions(companyfacts: dict, fye: str) -> dict[int, str]:
                     if abs((e - _fye_end(fye, year)).days) <= FYE_TOLERANCE_DAYS:
                         latest_fy[o["accn"]] = max(latest_fy.get(o["accn"], year), year)
     out: dict[int, str] = {}
-    for accn, year in sorted(latest_fy.items()):
-        out.setdefault(year, accn)  # original 10-K before any amendment
+    for accn, year in sorted(latest_fy.items(), key=lambda kv: (filed[kv[0]], kv[0])):
+        out.setdefault(year, accn)  # the first filed: the original 10-K, not a later amendment
+    return out
+
+
+def filing_dates(companyfacts: dict) -> dict[str, date]:
+    """Accession -> filing date, from every observation Company Facts lists."""
+    out: dict[str, date] = {}
+    for tag in companyfacts["facts"].get("us-gaap", {}).values():
+        for obs_list in tag.get("units", {}).values():
+            for o in obs_list:
+                out.setdefault(o["accn"], _d(o["filed"]))
     return out
 
 
@@ -173,7 +197,10 @@ def normalize(
     actions: list[CorporateAction],
     fiscal_years: list[int],
     metrics: dict[str, MetricSpec] = METRICS,
+    as_of: date | None = None,
 ) -> Dataset:
+    if as_of is not None:  # point-in-time: drop every observation filed after as_of (PRD section 8)
+        companyfacts = _filed_by(companyfacts, as_of)
     cik = int(companyfacts["cik"])
     fye = submissions["fiscalYearEnd"]
     recent = submissions["filings"]["recent"]
@@ -185,7 +212,9 @@ def normalize(
         fiscal_year_end=fye,
     )
     gaap = companyfacts["facts"].get("us-gaap", {})
-    ds = Dataset(company=company, fiscal_years=sorted(fiscal_years), snapshot_ids=snapshot_ids, actions=actions)
+    ds = Dataset(company=company, fiscal_years=sorted(fiscal_years), snapshot_ids=snapshot_ids, actions=actions,
+                 as_of=as_of)
+    ds.filing_dates = filing_dates(companyfacts)
     for year, accn in annual_accessions(companyfacts, fye).items():
         if year in ds.fiscal_years:
             ds.annual_filings[f"FY{year}"] = accn

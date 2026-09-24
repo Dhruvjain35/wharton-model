@@ -19,8 +19,10 @@ def _cmd_dossier(a):
     from . import compare, dossier
     from .engine import build
 
-    run = build(a.ticker, a.years, check_notes=not a.no_notes)
-    peers = [build(p, None, check_notes=not a.no_notes) for p in a.peers]
+    from datetime import date
+    as_of = date.fromisoformat(a.as_of) if a.as_of else None
+    run = build(a.ticker, a.years, check_notes=not a.no_notes, as_of=as_of)
+    peers = [build(p, None, check_notes=not a.no_notes, as_of=as_of) for p in a.peers]
     out = dossier.write(run, Path(a.out), compare.markdown(run, peers))
     for p in peers:
         dossier.write(p, Path(a.out))
@@ -35,8 +37,10 @@ def _cmd_verify_run(a):
 
     saved = json.loads(Path(a.run_json).read_text())
     cfg = saved["run"]["config"]
+    from datetime import date
+    as_of = date.fromisoformat(cfg["as_of"]) if cfg.get("as_of") else None
     run = build(cfg["ticker"], cfg["fiscal_years"], check_notes=cfg["check_notes"],
-                snapshot_ids=saved["inputs"]["snapshot_ids"])
+                snapshot_ids=saved["inputs"]["snapshot_ids"], as_of=as_of)
     again = payload(run)["outputs_digest"]
     ok = again == saved["outputs_digest"]
     print(f"saved   {saved['outputs_digest']}\nrebuilt {again}\n{'IDENTICAL' if ok else 'DIFFERENT'}")
@@ -78,6 +82,18 @@ def _cmd_screen(a):
     print(f"wrote {out} (from {runs[-1].parent.name})")
 
 
+def _cmd_verify_value(a):
+    from .valuation import report
+    from .valuation.run import run
+
+    saved = json.loads(Path(a.valuation_json).read_text())
+    v = run(saved["ticker"])
+    again = report.payload(v, report.evidence(v, v.companyfacts, v.fundamentals))["outputs_digest"]
+    ok = again == saved["outputs_digest"]
+    print(f"saved   {saved['outputs_digest']}\nrebuilt {again}\n{'IDENTICAL' if ok else 'DIFFERENT'}")
+    return 0 if ok else 1
+
+
 def _cmd_review(a):
     from .engine import build
 
@@ -102,6 +118,7 @@ def main(argv=None) -> int:
     s.add_argument("--out", default=str(ROOT / "out"))
     s.add_argument("--no-notes", action="store_true", help="skip note-table verification (faster, offline-only if cached)")
     s.add_argument("--strict", action="store_true", help="exit 1 when blocking review items remain")
+    s.add_argument("--as-of", help="point-in-time run: ignore filings made after this date (YYYY-MM-DD)")
     s.set_defaults(fn=_cmd_dossier)
 
     s = sub.add_parser("verify-run", help="rebuild a saved run from its pinned inputs and compare digests")
@@ -116,6 +133,10 @@ def main(argv=None) -> int:
     s.add_argument("ticker")
     s.add_argument("--out", default=str(ROOT / "out"))
     s.set_defaults(fn=_cmd_value)
+
+    s = sub.add_parser("verify-value", help="rebuild a saved valuation.json from pinned inputs and compare digests")
+    s.add_argument("valuation_json")
+    s.set_defaults(fn=_cmd_verify_value)
 
     s = sub.add_parser("screen", help="write review.html from the latest dossier run and valuation")
     s.add_argument("ticker")

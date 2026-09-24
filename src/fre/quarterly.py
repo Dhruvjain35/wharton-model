@@ -42,7 +42,7 @@ def _source(cf: dict, obs: dict, tag: str) -> Source:
                   locator=f"us-gaap:{tag}", snapshot_id="companyfacts", retrieved_at="")
 
 
-def _reported(cf, metric, start, end, label) -> Fact:
+def _reported(cf, metric, start, end, label, actions=()) -> Fact:
     spec = METRICS[metric]
     hit = _find(cf, metric, start, end)
     if hit is None:
@@ -50,18 +50,25 @@ def _reported(cf, metric, start, end, label) -> Fact:
                     period_end=end, fiscal_label=label, status=FactStatus.MISSING,
                     notes=[f"No 10-Q/10-K observation of {metric} for {start or ''}..{end}"])
     obs, tag = hit
-    return Fact(company=str(cf["cik"]), metric=metric, value=float(obs["val"]), unit=spec.unit, period_start=start,
-                period_end=end, fiscal_label=label, status=FactStatus.REPORTED, sources=[_source(cf, obs, tag)])
+    value, status, formula = float(obs["val"]), FactStatus.REPORTED, None
+    if spec.share_basis:  # same split rule as annual facts: rebase values filed before a later split
+        from .normalize import _pending_split_factor, _to_current_basis
+        factor = _pending_split_factor(date.fromisoformat(obs["filed"]), list(actions))
+        if factor != 1.0:
+            value = _to_current_basis(value, spec.unit, factor)
+            status, formula = FactStatus.DERIVED, f"reported {obs['val']:g} rebased by {factor:g}x for later stock split"
+    return Fact(company=str(cf["cik"]), metric=metric, value=value, unit=spec.unit, period_start=start,
+                period_end=end, fiscal_label=label, status=status, formula=formula, sources=[_source(cf, obs, tag)])
 
 
-def ytd(cf: dict, metric: str, start: date, end: date) -> Fact:
-    return _reported(cf, metric, start, end, f"YTD{end}")
+def ytd(cf: dict, metric: str, start: date, end: date, actions=()) -> Fact:
+    return _reported(cf, metric, start, end, f"YTD{end}", actions)
 
 
-def instant(cf: dict, metric: str, on: date) -> Fact:
+def instant(cf: dict, metric: str, on: date, actions=()) -> Fact:
     if METRICS[metric].kind != "instant":
         raise QuarterlyError(f"{metric} is a flow, not a balance-sheet value")
-    return _reported(cf, metric, None, on, f"AT{on}")
+    return _reported(cf, metric, None, on, f"AT{on}", actions)
 
 
 def _derived(cf, metric, start, end, label, parts: list[tuple[int, Fact]], formula: str) -> Fact:

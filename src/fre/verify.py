@@ -23,7 +23,7 @@ def verify_ledger(ds: Dataset, ticker: str) -> list[str]:
     if not path.exists():
         return []
     doc = yaml.safe_load(path.read_text()) or {}
-    entries = list(doc.get("adjustments") or [])
+    entries = [e for e in (doc.get("adjustments") or []) if e["fiscal_label"] in ds.labels]
     for o in doc.get("observations") or []:
         entries.append({"id": o["id"], "fiscal_label": o["fiscal_labels"][0],
                         "evidence": {"snapshot_id": o["snapshot_id"], "quote": o["quote"]}})

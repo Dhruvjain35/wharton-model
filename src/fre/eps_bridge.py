@@ -19,18 +19,18 @@ from .normalize import Dataset
 RECOMPUTE_TOLERANCE = 0.02  # dollars per share; EPS is reported to the cent
 
 
-def _numerator(ds: Dataset, label: str) -> tuple[str, float | None]:
-    v = ds.value("net_income_to_common", label)
-    if v is not None:
-        return "net_income_to_common", v
+def _numerator(ds: Dataset, label: str, other: str) -> tuple[str, float | None]:
+    """Net income to common when BOTH years report it; otherwise net income in both years."""
+    if ds.value("net_income_to_common", label) is not None and ds.value("net_income_to_common", other) is not None:
+        return "net_income_to_common", ds.value("net_income_to_common", label)
     return "net_income", ds.value("net_income", label)
 
 
 def bridge(ds: Dataset) -> list[dict]:
     rows = []
     for prev, cur in zip(ds.labels, ds.labels[1:]):
-        num_name_c, ni_c = _numerator(ds, cur)
-        num_name_p, ni_p = _numerator(ds, prev)
+        num_name_c, ni_c = _numerator(ds, cur, prev)
+        num_name_p, ni_p = _numerator(ds, prev, cur)
         need = {f"{num_name_c}@{cur}": ni_c, f"{num_name_p}@{prev}": ni_p,
                 f"shares_diluted@{cur}": ds.value("shares_diluted", cur),
                 f"shares_diluted@{prev}": ds.value("shares_diluted", prev),

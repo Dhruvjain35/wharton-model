@@ -158,3 +158,54 @@ def test_a_mismatched_fact_is_withheld_from_every_calculation():
     assert sorted(f.candidates) == [400_000_000_000.0, 402_836e6]
     compute(ds)
     assert ds.value("operating_margin", "FY2025") is None
+
+
+TEXT = ("Short-Term Debt We have a commercial paper program of up to $ 25.0 billion. We had no commercial paper "
+        "outstanding as of December 31, 2025. Our short-term debt balance also includes the current portion of "
+        "certain long-term debt of $ 1,996 million. " + "Unrelated discussion of results. " * 12 + "Revenues were 402,836 million.")
+
+
+def text_fact(metric, value, instant=True):
+    src = Source(accession="A", form="10-K", filed=date(2026, 2, 5), url="https://x/doc.htm", locator="us-gaap:X",
+                 snapshot_id="s", retrieved_at="t")
+    return Fact(company="1", metric=metric, value=value, unit="USD", period_start=None if instant else date(2025, 1, 1),
+                period_end=date(2025, 12, 31), fiscal_label="FY2025", status=FactStatus.REPORTED, sources=[src])
+
+
+def run_text(*facts):
+    return {r.fact: r for r in reconcile(dataset(*facts), fetch=lambda c, a: [], fetch_notes=lambda c, a: [],
+                                         fetch_text=lambda url: TEXT)}
+
+
+def test_value_printed_near_its_keyword_matches_in_text():
+    r = run_text(text_fact("debt_lt_current", 1_996e6))["debt_lt_current@FY2025"]
+    assert r.outcome == "matched-in-text" and "1,996" in r.line
+
+
+def test_zero_needs_an_explicit_none_statement():
+    assert run_text(text_fact("commercial_paper", 0.0))["commercial_paper@FY2025"].outcome == "matched-in-text"
+
+
+def test_number_far_from_its_keyword_does_not_match():
+    # 402,836 is in the text, but nowhere near "commercial paper"
+    assert run_text(text_fact("commercial_paper", 402_836e6))["commercial_paper@FY2025"].outcome == "from-notes"
+
+
+def test_billion_phrasing_verifies_a_round_value():
+    t = "We had $2.3 billion of commercial paper outstanding as of December 31, 2024."
+    r = reconcile(dataset(text_fact("commercial_paper", 2_300e6)), fetch=lambda c, a: [], fetch_notes=lambda c, a: [],
+                  fetch_text=lambda url: t)[0]
+    assert r.outcome == "matched-in-text"
+
+
+def test_negated_match_needs_a_tag_that_is_presented_negated():
+    cf = Statement(title="CONSOLIDATED STATEMENTS OF CASH FLOWS", usd_scale=1e6, columns=[Column(12, date(2025, 12, 31))],
+                   rows=[R("Net cash provided by operating activities", "us-gaap:NetCashProvidedByUsedInOperatingActivities", [-164_713])])
+    ds = dataset(fact("cfo", 164_713e6, "us-gaap:NetCashProvidedByUsedInOperatingActivities"))
+    assert reconcile(ds, fetch=lambda c, a: [cf])[0].outcome == "mismatch"
+
+
+def test_verified_fact_records_the_filing_presentation_scale():
+    ds = dataset(fact("revenue", 402_836e6, "us-gaap:Revenues"))
+    reconcile(ds, fetch=fetch)
+    assert ds.fact("revenue", "FY2025").scale == 1_000_000

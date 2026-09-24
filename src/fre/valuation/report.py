@@ -36,7 +36,7 @@ def evidence(run: ValuationRun, cf: dict, fund) -> dict:
         "capex_intensity_ytd": div(rows["capex"]["ytd"], rev["ytd"]),
         "capex_intensity_ttm": div(rows["capex"]["ttm"], rev["ttm"]),
         "dna_intensity_ytd": div(rows["dna"]["ytd"], rev["ytd"]),
-        "equity_gains_share_of_net_income_ytd": div(rows["equity_securities_gain"]["ytd"], rows["net_income"]["ytd"]),
+        "equity_gains_share_of_pretax_ytd": div(rows["equity_securities_gain"]["ytd"], lat.value("pretax_income", lab["cur"])),
         "cash_fcf_ytd": lat.value("fcf", lab["cur"]),
         "cash_fcf_ytd_prior": lat.value("fcf", lab["prior"]),
     }
@@ -85,7 +85,7 @@ def markdown(run: ValuationRun, ev: dict) -> str:
         f"- Capex intensity YTD {pct(r['capex_intensity_ytd'])}, TTM {pct(r['capex_intensity_ttm'])}; depreciation "
         f"intensity YTD {pct(r['dna_intensity_ytd'])}.",
         f"- Cash FCF (CFO − capex) YTD {money(r['cash_fcf_ytd'])} vs {money(r['cash_fcf_ytd_prior'])} a year earlier.",
-        f"- Gains on equity securities are {pct(r['equity_gains_share_of_net_income_ytd'])} of YTD net income.",
+        f"- Pretax gains on equity securities are {pct(r['equity_gains_share_of_pretax_ytd'])} of YTD pretax income.",
         "",
         "## Assumptions",
         "",
@@ -136,7 +136,8 @@ def markdown(run: ValuationRun, ev: dict) -> str:
         *[f"- **{n}**: {' '.join((cfg['scenarios'].get(n) or {}).get('rationale', 'proposed assumptions').split())}"
           for n in run.scenarios],
         "",
-        "Flags: " + ("; ".join(sorted({f for s in run.scenarios.values() for f in s.flags})) or "none"),
+        "Flags:",
+        *[f"- **{n}**: {f}" for n, sc in run.scenarios.items() for f in sc.flags],
         "",
         "## Reverse DCF — assumptions consistent with price under this model",
         "",
@@ -156,8 +157,32 @@ def markdown(run: ValuationRun, ev: dict) -> str:
         "",
         f"Capex break-even at {per_share(px['latest'].close)}: "
         + (f"the capex path scaled by {be.roots[0]:.2f}x reproduces the price." if be.roots else
-           f"no capex multiplier in [{be.lo:.1f}x, {be.hi:.1f}x] reproduces the price with growth and margins held fixed; "
-           "the gap is about growth, margins or the discount rate, not capex alone."),
+           f"no capex multiplier in [{be.lo:.1f}x, {be.hi:.1f}x] reproduces the price with growth and margins held fixed. "
+           "Read this with the model's structure in mind: capex only enters the five explicit years, while terminal "
+           "reinvestment is set by growth / ROIC, and the terminal value is most of EV."),
+        "",
+        "## Relative valuation cross-check (not averaged with the DCF)",
+        "",
+        "| Company | Window | Price date | Market cap (all classes) | P/E | EV/EBIT | FCF yield |",
+        "|---|---|---|---:|---:|---:|---:|",
+        *[f"| {t} | {m.window} | {m.price_date} | {money(m.market_cap)} | {'—' if m.pe is None else f'{m.pe:.1f}x'} | "
+          f"{'—' if m.ev_ebit is None else f'{m.ev_ebit:.1f}x'} | {'—' if m.fcf_yield is None else f'{m.fcf_yield:.2%}'} |"
+          for t, m in run.multiples.items()],
+        "",
+        *[f"- {t}: " + "; ".join(m.notes) for t, m in run.multiples.items() if m.notes],
+        f"- P/E uses all-class market cap / trailing net income; {run.ticker}'s trailing net income includes "
+        f"{money(ev['rows']['equity_securities_gain']['ttm'])} of pretax gains on equity securities, so EV/EBIT is the cleaner comparison.",
+        f"- Exit-multiple check: the base-case perpetuity terminal value equals "
+        + (f"{b.implied_exit_ev_ebit:.1f}x" if b.implied_exit_ev_ebit else "n/a")
+        + " year-N+1 EBIT. Compare with the trailing EV/EBIT multiples above: a perpetuity value far below what "
+          "peers trade at today is one reason the model value sits below the price.",
+        "",
+        "## Preferred claim",
+        "",
+        *[f"- Deducted at {p['basis']} ({money(p['claim'])}): {per_share(p['value_per_share'])} per share"
+          for p in run.preferred_sensitivity],
+        "- The preferred converts into Class A/C shares by May 15, 2029 at a rate that depends on the share price; a "
+        "conversion-value treatment would need the conversion-rate schedule from the filing.",
         "",
         "## Sensitivity",
         "",
@@ -189,6 +214,20 @@ def markdown(run: ValuationRun, ev: dict) -> str:
 
 
 def payload(run: ValuationRun, ev: dict) -> dict:
+    import hashlib
+    from datetime import datetime, timezone
+
+    from ..engine import code_version
+
+    body = _body(run, ev)
+    digest = hashlib.sha256(json.dumps(body, sort_keys=True, default=str).encode()).hexdigest()
+    return {"run": {"kind": "valuation", "ticker": run.ticker,
+                    "created_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+                    "code_version": code_version(), "snapshots_read": run.snapshots_read},
+            "outputs_digest": digest, **body}
+
+
+def _body(run: ValuationRun, ev: dict) -> dict:
     return {
         "ticker": run.ticker, "valuation_date": str(run.valuation_date), "stub": run.stub,
         "problems": run.problems, "config": run.cfg, "evidence": ev,
@@ -201,6 +240,9 @@ def payload(run: ValuationRun, ev: dict) -> dict:
         "reverse": {k: {var: sr.to_dict() for var, sr in d.items()} for k, d in run.reverse.items()},
         "breakevens": {k: v.to_dict() for k, v in run.breakevens.items()},
         "grids": run.grids, "nonoperating_sensitivity": run.nonoperating_sensitivity,
+        "preferred_sensitivity": run.preferred_sensitivity,
+        "multiples": {k: v.to_dict() for k, v in run.multiples.items()},
+        "implied_exit_ev_ebit": {k: v.implied_exit_ev_ebit for k, v in run.scenarios.items()},
     }
 
 

@@ -39,6 +39,7 @@ class Source(BaseModel):
     locator: str  # XBRL tag ("us-gaap:Revenues") or filing table/page reference
     snapshot_id: str  # sha256 prefix of the immutable raw snapshot the value was read from
     retrieved_at: str
+    accepted: str | None = None  # EDGAR acceptance timestamp from the filing index
 
 
 class Restatement(BaseModel):
@@ -59,7 +60,8 @@ class Fact(BaseModel):
     metric: str
     value: float | None
     unit: str  # "USD", "USD/shares", "shares", "pure"
-    scale: int = 1  # original reporting scale; values are always stored unscaled
+    scale: int = 1  # presentation scale in the filing (1e6 for "$ in Millions"); values are stored unscaled
+    currency: str | None = "USD"  # None for share counts
     period_start: date | None  # None for balance-sheet (instant) facts
     period_end: date
     fiscal_label: str  # "FY2025"

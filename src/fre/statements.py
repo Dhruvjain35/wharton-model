@@ -32,6 +32,8 @@ class Row:
     label: str
     tag: str  # "us-gaap:Revenues"
     raw: list[float | None]  # as printed; scale depends on the fact's unit
+    section: str = ""  # the dimension heading above it, e.g. "Class A Common Stock" on a cover page
+    text: list[str] = field(default_factory=list)  # printed cell text (for non-numeric rows such as a trading symbol)
 
 
 @dataclass
@@ -132,6 +134,7 @@ def parse_r_page(raw: bytes) -> Statement:
         body = trs[2:]
 
     st = Statement(title=title, columns=columns, usd_scale=usd_scale, share_scale=share_scale)
+    section = ""
     for tr in body:
         if 'class="r' not in tr[:40]:
             continue
@@ -139,9 +142,16 @@ def parse_r_page(raw: bytes) -> Statement:
         cells = _cells(tr)
         if not tag or len(cells) < 2:
             continue
+        if tr.startswith('<tr class="rh"'):  # a dimension member heading, e.g. "Class A Common Stock"
+            section = cells[0][0]
+            continue
         vals = [_number(c) for c, _ in cells[1:1 + len(columns)]]
         if any(v is not None for v in vals):
-            st.rows.append(Row(label=cells[0][0], tag=f"{tag.group(1)}:{tag.group(2)}", raw=vals))
+            st.rows.append(Row(label=cells[0][0], tag=f"{tag.group(1)}:{tag.group(2)}", raw=vals, section=section,
+                               text=[c for c, _ in cells[1:1 + len(columns)]]))
+        else:
+            st.rows.append(Row(label=cells[0][0], tag=f"{tag.group(1)}:{tag.group(2)}", raw=vals, section=section,
+                               text=[c for c, _ in cells[1:1 + len(columns)]]))
     return st
 
 
@@ -167,10 +177,12 @@ def _reports(cik: int, accession: str, primary: bool) -> list[Statement]:
             continue
         short = html.unescape(name.group(1)).upper()
         if primary:
-            if cat.group(1) != "Statements" or "PARENTHETICAL" in short or not any(k in short for k in PRIMARY):
+            # some filings (e.g. Meta FY2021) file the balance sheet under "Uncategorized"
+            if cat.group(1) not in ("Statements", "Uncategorized") or "PARENTHETICAL" in short \
+                    or not any(k in short for k in PRIMARY):
                 continue
-        elif cat.group(1) != "Details":
-            continue
+        elif cat.group(1) != "Details" and "PARENTHETICAL" not in short:
+            continue  # secondary tier: note detail tables and the parenthetical statements (share counts)
         url = f"{folder}/{fname.group(1)}"
         sid = snapshot.fetch(url)
         try:

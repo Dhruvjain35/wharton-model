@@ -56,7 +56,8 @@ def apply_zero_attestations(ds: Dataset, rules: list[dict], fetch=primary_statem
                 _fail(ds, metric, label, f"the filing shows {hits[0][1]!r} on {hits[0][0][:60]!r}")
                 continue
             st = sheets[0]
-            src = Source(accession=accn, form="10-K", filed=f.period_end, url=st.url,
+            src = Source(accession=accn, form="10-K" if label.startswith("FY") else "10-Q",
+                         filed=ds.filing_dates.get(accn, f.period_end), url=st.url,
                          locator=f"absent from {st.title.split(' - ')[0]} and note details",
                          snapshot_id=st.snapshot_id, retrieved_at="")
             ds.facts[key] = f.model_copy(update={

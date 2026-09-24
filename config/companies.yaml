@@ -2,6 +2,7 @@
 GOOGL:
   cik: "0001652044"
   role: pilot
+  price_symbols: [["Class C", "GOOG"], ["", "GOOGL"]]   # Class B is unlisted and converts 1:1 into Class A
   corporate_actions:
     - kind: split
       ratio: 20
@@ -14,8 +15,10 @@ GOOGL:
 MSFT:
   cik: "0000789019"
   role: peer
+  price_symbols: [["", "MSFT"]]
   corporate_actions: []
 META:
   cik: "0001326801"
   role: peer
+  price_symbols: [["", "META"]]   # Class B is unlisted and converts 1:1 into Class A
   corporate_actions: []

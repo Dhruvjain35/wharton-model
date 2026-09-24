@@ -27,7 +27,7 @@ operating_nwc:                     # base-year balance sheet lines; financing it
   add: [us-gaap:AccountsReceivableNetCurrent, us-gaap:OtherAssetsCurrent]
   subtract: [us-gaap:AccountsPayableCurrent, us-gaap:EmployeeRelatedLiabilitiesCurrent,
              us-gaap:AccruedLiabilitiesCurrent, goog:AccruedRevenueShare, us-gaap:ContractWithCustomerLiabilityCurrent]
-  add_back_financing: [debt_lt_current, finance_lease_liability_current]
+  add_back_financing: [debt_lt_current, finance_lease_liability_current, commercial_paper]
 
 reverse_bounds:
   growth: [-0.10, 0.60]
@@ -186,6 +186,9 @@ scenarios:
     capex_pct: [0.36, 0.34, 0.30, 0.25, 0.21]
     terminal_margin: 0.28
     terminal_roic: 0.14
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
   favorable:
     rationale: >-
       Growth holds up, the capex wave normalizes quickly, and margins expand as revenue from the
@@ -195,3 +198,16 @@ scenarios:
     capex_pct: [0.30, 0.24, 0.19, 0.16, 0.14]
     terminal_margin: 0.35
     terminal_roic: 0.28
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed
+  flat_ebitda:
+    rationale: >-
+      Base case, except EBITDA margin (operating margin + depreciation) is held at its FY2026 level of 39.5%,
+      so operating margin falls as depreciation from the capex wave rises. Tests whether the base case
+      quietly assumes margin expansion (it raises implied EBITDA margin from 39.5% to 44.5%).
+    operating_margin: [0.33, 0.305, 0.285, 0.275, 0.27]
+    terminal_margin: 0.27
+    owner: Claude (AI-proposed)
+    as_of: 2026-09-24
+    status: proposed

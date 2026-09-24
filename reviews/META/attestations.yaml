@@ -5,11 +5,18 @@ zero_if_not_presented:
     fiscal_labels: [FY2021, FY2022, FY2023, FY2024, FY2025]
     absent_label_pattern: (?i)current portion of (long-term )?debt|short-term debt|short-term borrowings
     rationale: No current portion of debt is presented; all notes are classified long-term.
+    include_latest: true
   - metric: commercial_paper
     fiscal_labels: [FY2021, FY2022, FY2023, FY2024, FY2025]
     absent_label_pattern: (?i)commercial paper
     rationale: No commercial paper program balance is presented.
+    include_latest: true
   - metric: dividends
     fiscal_labels: [FY2021]
     absent_label_pattern: (?i)dividend
     rationale: No dividend payments line in FY2021.
+  - metric: preferred_equity
+    fiscal_labels: [FY2021, FY2022, FY2023, FY2024, FY2025]
+    absent_label_pattern: (?i)preferred stock|preference shares
+    rationale: No preferred stock is presented.
+    include_latest: true

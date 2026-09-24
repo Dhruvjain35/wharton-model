@@ -219,3 +219,31 @@ def test_missing_optional_alternative_metric_is_info_not_warning():
     ds = run(facts(Revenues=("USD", [])), years=[2021])
     items = [i for i in ds.review if i.metric == "gross_profit"]
     assert items and all(i.severity == "info" for i in items)
+
+
+def test_original_annual_filing_is_chosen_by_filing_date_not_accession_text():
+    from fre.normalize import annual_accessions
+    cf = facts(Revenues=("USD", [
+        obs(100.0, "2021-01-01", "2021-12-31", "0000950170-22-000009", "2022-03-30", form="10-K/A"),  # amendment sorts first
+        obs(100.0, "2021-01-01", "2021-12-31", "0001193125-22-000500", "2022-02-01"),               # original, filed first
+    ]))
+    assert annual_accessions(cf, "1231") == {2021: "0001193125-22-000500"}
+
+
+def test_filing_dates_are_known_for_every_annual_filing():
+    cf = facts(Revenues=("USD", [obs(100.0, "2021-01-01", "2021-12-31", "k-22", "2022-02-01")]))
+    assert run(cf, years=[2021]).filing_dates["k-22"].isoformat() == "2022-02-01"
+
+
+def test_as_of_ignores_filings_made_after_that_date_including_restatements():
+    from datetime import date as d
+    cf = facts(Revenues=("USD", [
+        obs(100.0, "2021-01-01", "2021-12-31", "a-22", "2022-02-01"),
+        obs(101.0, "2021-01-01", "2021-12-31", "a-23", "2023-02-01"),   # restated later
+        obs(120.0, "2022-01-01", "2022-12-31", "a-23", "2023-02-01"),
+    ]))
+    ds = normalize(cf, SUBS, snapshot_ids={"companyfacts": "cf", "submissions": "sb"}, retrieved_at="x",
+                   actions=[], fiscal_years=[2021, 2022], as_of=d(2022, 6, 30))
+    assert ds.value("revenue", "FY2021") == 100.0            # what was known on 2022-06-30
+    assert ds.fact("revenue", "FY2022").status == FactStatus.MISSING  # not yet filed
+    assert ds.as_of == d(2022, 6, 30)

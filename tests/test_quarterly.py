@@ -70,3 +70,12 @@ def test_missing_prior_ytd_blocks_the_ttm():
     f = ttm(CF, "capex", date(2026, 6, 30), fye="1231")
     assert f.value is None and f.status == FactStatus.MISSING
     assert any("capex" in n or "YTD" in n for n in f.notes)
+
+
+def test_pre_split_quarterly_share_values_are_rebased():
+    from fre.normalize import CorporateAction
+    cf = {"cik": 1, "entityName": "T", "facts": {"us-gaap": {"EarningsPerShareDiluted": {"units": {"USD/shares": [
+        o(20.0, "2022-01-01", "2022-03-31", "q122", "2022-04-26")]}}}}}
+    split = CorporateAction(kind="split", ratio=20, effective=date(2022, 7, 15), source="t")
+    f = ytd(cf, "eps_diluted", date(2022, 1, 1), date(2022, 3, 31), actions=[split])
+    assert f.value == 1.0 and f.status == FactStatus.DERIVED

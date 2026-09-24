@@ -50,7 +50,8 @@ def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_note
     docs = dict(zip(recent["accessionNumber"], recent["primaryDocument"]))
     cik = int(cf["cik"])
 
-    ds = Dataset(company=annual.company, fiscal_years=[], snapshot_ids=annual.snapshot_ids)
+    ds = Dataset(company=annual.company, fiscal_years=[], snapshot_ids=annual.snapshot_ids,
+                 filing_dates=annual.filing_dates)
 
     def put(f: Fact, label: str) -> None:
         srcs = [s.model_copy(update={"snapshot_id": annual.snapshot_ids["companyfacts"],
@@ -58,11 +59,12 @@ def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_note
         ds.add(f.model_copy(update={"fiscal_label": label, "sources": srcs}))
 
     for m in FLOWS:
-        put(ytd(cf, m, start, end), labels["cur"])
-        put(ytd(cf, m, prior_start, prior_end), labels["prior"])
+        put(ytd(cf, m, start, end, annual.actions), labels["cur"])
+        put(ytd(cf, m, prior_start, prior_end, annual.actions), labels["prior"])
     for m in BALANCE:
-        put(instant(cf, m, end), labels["bs"])
-    recon = reconcile(ds, fetch=fetch, fetch_notes=fetch_notes)
+        put(instant(cf, m, end, annual.actions), labels["bs"])
+    from .filing_text import text_at
+    recon = reconcile(ds, fetch=fetch, fetch_notes=fetch_notes, fetch_text=text_at if fetch_notes else None)
 
     for m in FLOWS:  # TTM from reconciled inputs only
         parts = [(1, annual.facts.get(f"{m}@{last}")), (1, ds.facts[f"{m}@{labels['cur']}"]),

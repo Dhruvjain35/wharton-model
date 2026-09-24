@@ -145,3 +145,23 @@ def test_eps_cannot_keep_its_reported_value_when_net_income_moved_but_shares_are
     f = adj.fact("eps_diluted", "FY2025")
     assert f.value is None and f.status == FactStatus.MISSING
     assert any("shares_diluted" in n for n in f.notes)
+
+
+def test_quoted_number_must_match_on_digit_boundaries():
+    from fre.ledger import verify_quotes as vq
+    e = entry(evidence={"snapshot_id": "S", "quote": "equity securities, net 1,392 12", "fact": "equity_securities_gain"})
+    ds = mk()
+    ds.facts["equity_securities_gain@FY2025"] = ds.facts["equity_securities_gain@FY2025"].model_copy(update={"value": 392e6})
+    assert vq([e], lambda sid: "equity securities, net 1,392 12", ds)  # 392 is not 1,392
+
+
+def test_rounded_billion_in_a_quote_can_evidence_a_precise_fact():
+    from fre.ledger import verify_quotes as vq
+    q = "net gains on equity securities of $24.1 billion"
+    e = entry(evidence={"snapshot_id": "S", "quote": q, "fact": "equity_securities_gain"})
+    assert vq([e], lambda sid: q, mk()) == []
+
+
+def test_entries_for_years_outside_the_loaded_window_are_skipped_not_fatal():
+    adjs = build(mk(), [entry(fiscal_label="FY2019")])
+    assert adjs == []

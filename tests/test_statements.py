@@ -49,3 +49,43 @@ MSFT_LIKE = b"""<table>
 <tr class="ro"><td class="pl"><a onclick="Show.showAR( this, 'defref_us-gaap_EarningsPerShareBasic', window );">Basic</a></td>
 <td class="nump">$ 18.00<span></span></td></tr>
 </table>"""
+
+
+COVER = b"""<table>
+<tr><th class="tl"><div><strong>COVER PAGE - shares shares in Millions</strong></div></th><th class="th" colspan="1">6 Months Ended</th><th class="th"></th></tr>
+<tr><th class="th"><div>Jun. 30, 2026</div></th><th class="th"><div>Jul. 15, 2026</div></th></tr>
+<tr class="rh"><td class="pl"><a onclick="Show.showAR( this, 'defref_us-gaap_StatementClassOfStockAxis', window );"><strong>Class A Common Stock</strong></a></td><td class="text"></td><td class="text"></td></tr>
+<tr class="ro"><td class="pl"><a onclick="Show.showAR( this, 'defref_dei_TradingSymbol', window );">Trading Symbol</a></td><td class="text">GOOGL</td><td class="text"></td></tr>
+<tr class="re"><td class="pl"><a onclick="Show.showAR( this, 'defref_dei_SecurityExchangeName', window );">Security Exchange Name</a></td><td class="text">NASDAQ</td><td class="text"></td></tr>
+<tr class="ro"><td class="pl"><a onclick="Show.showAR( this, 'defref_dei_EntityCommonStockSharesOutstanding', window );">Entity Common Stock, Shares Outstanding</a></td><td class="text"></td><td class="nump">5,868<span></span></td></tr>
+<tr class="rh"><td class="pl"><a onclick="Show.showAR( this, 'defref_us-gaap_StatementClassOfStockAxis', window );"><strong>Class B Common Stock</strong></a></td><td class="text"></td><td class="text"></td></tr>
+<tr class="ro"><td class="pl"><a onclick="Show.showAR( this, 'defref_dei_EntityCommonStockSharesOutstanding', window );">Entity Common Stock, Shares Outstanding</a></td><td class="text"></td><td class="nump">835<span></span></td></tr>
+</table>"""
+
+
+def test_rows_remember_the_section_they_sit_under_and_text_rows_are_not_headings():
+    st = parse_r_page(COVER)
+    rows = st.rows_for("dei:EntityCommonStockSharesOutstanding")
+    assert [r.section for r in rows] == ["Class A Common Stock", "Class B Common Stock"]
+    assert [st.scaled(r, 1, "shares") for r in rows] == [5_868e6, 835e6]
+
+
+def test_cover_rows_carry_their_trading_symbol_text():
+    st = parse_r_page(COVER)
+    sym = [r for r in st.rows if r.tag == "dei:TradingSymbol"]
+    assert sym[0].section == "Class A Common Stock" and sym[0].text[0] == "GOOGL"
+
+
+def test_primary_statement_filed_as_uncategorized_is_still_found(monkeypatch):
+    """Meta's FY2021 FilingSummary lists its balance sheet under MenuCategory 'Uncategorized'."""
+    from fre import statements
+    summary = b"""<FilingSummary><MyReports>
+<Report instance="x"><HtmlFileName>R3.htm</HtmlFileName><ShortName>CONSOLIDATED BALANCE SHEETS</ShortName><MenuCategory>Uncategorized</MenuCategory></Report>
+<Report instance="x"><HtmlFileName>R4.htm</HtmlFileName><ShortName>CONSOLIDATED BALANCE SHEETS (Parenthetical)</ShortName><MenuCategory>Cover</MenuCategory></Report>
+<Report instance="x"><HtmlFileName>R9.htm</HtmlFileName><ShortName>Debt (Details)</ShortName><MenuCategory>Details</MenuCategory></Report>
+</MyReports></FilingSummary>"""
+    pages = {"FilingSummary.xml": summary, "R3.htm": (FIX / "googl_fy2025_R3_balance.htm").read_bytes()}
+    monkeypatch.setattr(statements.snapshot, "fetch", lambda url, **k: url.rsplit("/", 1)[1])
+    monkeypatch.setattr(statements.snapshot, "load_bytes", lambda sid: pages[sid])
+    got = statements.primary_statements(1, "0000000001-22-000001")
+    assert [s.title.split(" - ")[0] for s in got] == ["CONSOLIDATED BALANCE SHEETS"]

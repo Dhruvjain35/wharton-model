@@ -124,3 +124,30 @@ def test_every_result_exports_its_assumptions():
     assert d["inputs"]["growth"] == [0.10, 0.05]
     assert d["inputs"]["bridge"]["debt"] == 200.0
     assert d["value_per_share"] == pytest.approx(EQUITY / 100)
+
+
+def test_negative_terminal_margin_gets_no_tax_refund():
+    r = value(fixture(operating_margin=[0.20, -0.02], terminal_margin=-0.02))
+    assert r.terminal_nopat == pytest.approx(1155 * 1.03 * -0.02)  # no (1 - tax) shrinkage of a loss
+
+
+def test_terminal_growth_above_the_risk_free_rate_is_flagged():
+    r = value(fixture(terminal_growth=0.045, risk_free=0.044))
+    assert any("risk-free" in f for f in r.flags)
+    assert not any("risk-free" in f for f in value(fixture(risk_free=0.044)).flags)
+
+
+def test_growth_step_into_the_terminal_period_is_flagged():
+    r = value(fixture(growth=[0.10, 0.12], terminal_growth=0.03))
+    assert any("growth drops" in f for f in r.flags)
+
+
+def test_implied_ebitda_margin_expansion_is_flagged():
+    ex = Explicit(capex_pct=[0.08, 0.07], dna_pct=[0.05, 0.12], nwc_pct=0.10, base_nwc=100.0)
+    r = value(fixture(reinvestment=ex, operating_margin=[0.25, 0.25]))
+    assert any("EBITDA margin" in f for f in r.flags)
+
+
+def test_exit_multiple_implied_by_the_perpetuity_value():
+    r = value(fixture())
+    assert r.implied_exit_ev_ebit == pytest.approx(2974.125 / (1155 * 1.03 * 0.25))

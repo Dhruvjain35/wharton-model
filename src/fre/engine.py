@@ -44,7 +44,7 @@ class Run:
         return [i for i in self.reported.review + extra if i.severity == "block"]
 
 
-def default_years(ticker: str, n: int = 5) -> list[int]:
+def default_years(ticker: str, n: int = 5, as_of=None) -> list[int]:
     """The last n fiscal years for which the pinned data holds a 10-K."""
     from . import snapshot
     from .pipeline import lock
@@ -53,15 +53,23 @@ def default_years(ticker: str, n: int = 5) -> list[int]:
 
     ids = lock()[ticker]
     fye = snapshot.load(ids["submissions"])["fiscalYearEnd"]
-    return sorted(annual_accessions(snapshot.load(ids["companyfacts"]), fye))[-n:]
+    cf = snapshot.load(ids["companyfacts"])
+    if as_of is not None:
+        from .normalize import _filed_by
+        cf = _filed_by(cf, as_of)
+    return sorted(annual_accessions(cf, fye))[-n:]
 
 
 def build(ticker: str, years: list[int] | None = None, *, check_notes: bool = True,
-          snapshot_ids: dict[str, str] | None = None) -> Run:
-    years = years or default_years(ticker)
-    ds = load(ticker, years, snapshot_ids)
+          snapshot_ids: dict[str, str] | None = None, as_of=None) -> Run:
+    years = years or default_years(ticker, as_of=as_of)
+    ds = load(ticker, years, snapshot_ids, as_of=as_of)
     attest.apply_zero_attestations(ds, attest.load_rules(ticker))
-    recon = reconcile(ds, fetch=primary_statements, fetch_notes=note_details if check_notes else None)
+    from .filing_text import text_at
+    recon = reconcile(ds, fetch=primary_statements, fetch_notes=note_details if check_notes else None,
+                      fetch_text=text_at if check_notes else None)
+    from .filings import enrich
+    enrich(ds)
     compute(ds)
     adjustments, observations = ledger.load(ds, ticker)
     problems = verify_ledger(ds, ticker)
@@ -70,14 +78,29 @@ def build(ticker: str, years: list[int] | None = None, *, check_notes: bool = Tr
     from . import snapshot
     from .latest import build_latest
     latest, latest_recon, latest_labels = build_latest(
-        ds, snapshot.load(ds.snapshot_ids["companyfacts"]), snapshot.load(ds.snapshot_ids["submissions"]),
+        ds, _as_of_cf(snapshot.load(ds.snapshot_ids["companyfacts"]), as_of), snapshot.load(ds.snapshot_ids["submissions"]),
         primary_statements, note_details if check_notes else None)
+    if latest is not None:  # zero attestations may also cover the latest 10-Q balance sheet
+        accn = latest.fact("revenue", latest_labels["cur"]).sources[0].accession
+        latest.annual_filings = {latest_labels["bs"]: accn}
+        rules = [r | {"fiscal_labels": [latest_labels["bs"]]} for r in attest.load_rules(ticker) if r.get("include_latest")]
+        attest.apply_zero_attestations(latest, rules)
+        enrich(latest)
     return Run(latest=latest, latest_labels=latest_labels, latest_reconciliation=latest_recon,
                ticker=ticker, reported=ds, adjusted=adjusted, what_if=what_if, reconciliation=recon,
                adjustments=adjustments, observations=observations, ledger_problems=problems,
                eps_bridge=bridge(ds), eps_bridge_what_if=bridge(what_if),
                config={"ticker": ticker, "fiscal_years": years, "check_notes": check_notes,
+                       "as_of": str(as_of) if as_of else None,
+                       "vintage": f"point-in-time as of {as_of}" if as_of else "current (latest restated filings)",
                        "company_config": companies()[ticker], "engine_version": ENGINE_VERSION})
+
+
+def _as_of_cf(cf: dict, as_of):
+    if as_of is None:
+        return cf
+    from .normalize import _filed_by
+    return _filed_by(cf, as_of)
 
 
 def code_version() -> dict:

@@ -87,3 +87,9 @@ def test_large_recompute_gap_is_flagged():
     vals = dict(GOOGL, eps_diluted={2024: 8.04, 2025: 11.50})
     row = bridge(mk(vals))[0]
     assert row["eps_recompute_flag"] is not None
+
+
+def test_numerator_basis_is_the_same_in_both_years():
+    vals = dict(GOOGL, net_income_to_common={2024: None, 2025: 132_170e6})
+    row = bridge(mk(vals))[0]
+    assert row["numerator"] == "net_income"  # to-common missing in one year -> both years use net income

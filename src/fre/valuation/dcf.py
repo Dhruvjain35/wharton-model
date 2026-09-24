@@ -68,6 +68,7 @@ class DCFInputs:
     terminal_wacc: float | None = None
     terminal_tax_rate: float | None = None
     stub: float = 1.0
+    risk_free: float | None = None  # for the terminal-growth plausibility flag
     interest_expense: list[float] | None = None  # memo only: levered FCF
     net_borrowing: list[float] | None = None  # memo only
 
@@ -103,6 +104,7 @@ class DCFResult:
     equity_value: float
     value_per_share: float
     terminal_share: float
+    implied_exit_ev_ebit: float | None = None  # terminal value / year N+1 EBIT: the multiple the perpetuity implies
     flags: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -184,7 +186,8 @@ def value(inp: DCFInputs) -> DCFResult:
         prev_rev = rev
 
     t_rev = prev_rev * (1 + g)
-    t_nopat = t_rev * inp.terminal_margin * (1 - t_tax)
+    t_ebit = t_rev * inp.terminal_margin
+    t_nopat = t_ebit - max(t_ebit, 0.0) * t_tax  # no tax refund on a terminal loss either
     rr = g / inp.terminal_roic
     t_fcff = t_nopat * (1 - rr)
     tv = t_fcff / (t_wacc - g)
@@ -194,6 +197,20 @@ def value(inp: DCFInputs) -> DCFResult:
     equity = ev + b.excess_cash + b.nonoperating_assets - b.debt - b.other_senior_claims
     tv_share = pv_tv / ev if ev > 0 else float("nan")
 
+    if inp.risk_free is not None and g > inp.risk_free:
+        flags.append(f"Terminal growth {g:.2%} exceeds the risk-free rate {inp.risk_free:.2%}: the company would outgrow "
+                     "the economy forever")
+    if inp.growth[-1] - g > 0.03:
+        flags.append(f"Revenue growth drops from {inp.growth[-1]:.1%} in year {n} to {g:.1%} in perpetuity: consider "
+                     "more explicit years so the business reaches maturity first")
+    if ex:
+        ebitda = [m + d for m, d in zip(margins, ex.dna_pct)]
+        if ebitda[-1] - ebitda[0] > 0.03:
+            flags.append(f"Implied EBITDA margin rises from {ebitda[0]:.1%} to {ebitda[-1]:.1%} because depreciation "
+                         "grows while operating margin is held: is that expansion intended?")
+        last_rr = rows[-1].net_reinvestment / rows[-1].nopat if rows[-1].nopat > 0 else None
+        if last_rr is not None and abs(last_rr - rr) > 0.20:
+            flags.append(f"Reinvestment rate jumps from {last_rr:.0%} in year {n} to {rr:.0%} in the terminal period")
     if g > 0.04:
         flags.append(f"Terminal growth {g:.1%} exceeds 4%, a conservative ceiling for long-run nominal growth: justify it")
     if abs(inp.terminal_margin - margins[-1]) > 0.05:
@@ -204,4 +221,5 @@ def value(inp: DCFInputs) -> DCFResult:
         flags.append(f"{tv_share:.0%} of operating EV is terminal value: the result mostly reflects terminal assumptions")
     return DCFResult(inputs=inp, rows=rows, terminal_nopat=t_nopat, reinvestment_rate=rr, terminal_fcff=t_fcff,
                      terminal_value=tv, pv_terminal=pv_tv, enterprise_value=ev, equity_value=equity,
-                     value_per_share=equity / b.diluted_shares, terminal_share=tv_share, flags=flags)
+                     value_per_share=equity / b.diluted_shares, terminal_share=tv_share,
+                     implied_exit_ev_ebit=tv / t_ebit if t_ebit > 0 else None, flags=flags)

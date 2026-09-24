@@ -47,3 +47,8 @@ def search(cik: int, accession: str, primary_document: str, pattern: str, width:
         if len(out) >= limit:
             break
     return out
+
+
+def text_at(url: str) -> str:
+    """Plain text of a filing document by URL (snapshotted)."""
+    return plain_text(snapshot.load_bytes(snapshot.fetch(url)))

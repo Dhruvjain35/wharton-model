@@ -63,9 +63,29 @@ def validate(cfg: dict) -> list[str]:
                 problems.append(f"{name}: a value lies outside its own range")
         elif not (lo <= v <= hi):
             problems.append(f"{name}: value {v} outside its range [{lo}, {hi}]")
-        if a.get("status") == "approved" and "ai" in str(a.get("reviewer", "")).lower().split():
-            problems.append(f"{name}: an AI cannot approve an assumption")
+        if a.get("status") == "approved":
+            from ..ledger import _is_ai
+            r = a.get("reviewer")
+            if not r or r == a.get("owner") or _is_ai(r):
+                problems.append(f"{name}: approval needs a human reviewer other than the owner")
+    for sname, sc in (cfg.get("scenarios") or {}).items():
+        for k in ("rationale", "owner", "as_of", "status"):
+            if not sc.get(k):
+                problems.append(f"scenario {sname}: missing '{k}'")
+        for k, v in sc.items():
+            if k in SCENARIO_META:
+                continue
+            base = cfg["assumptions"].get(k)
+            if base is None:
+                problems.append(f"scenario {sname}: overrides unknown assumption '{k}'")
+                continue
+            vals, los, his = (v, base["low"], base["high"]) if isinstance(v, list) else ([v], [base["low"]], [base["high"]])
+            if any(not (lo <= x <= hi) for x, lo, hi in zip(vals, los, his)):
+                problems.append(f"scenario {sname}: {k} leaves the assumption's own range; widen the range with a reason")
     return problems
+
+
+SCENARIO_META = ("rationale", "owner", "as_of", "status", "reviewer")
 
 
 def verify_quotes(cfg: dict) -> list[str]:
@@ -177,6 +197,9 @@ class ValuationRun:
     grids: dict[str, dict]
     nonoperating_sensitivity: list[dict]
     breakevens: dict[str, SolveResult] = field(default_factory=dict)
+    preferred_sensitivity: list[dict] = field(default_factory=list)
+    multiples: dict = field(default_factory=dict)  # ticker -> Multiples at the latest price date
+    snapshots_read: list[str] = field(default_factory=list)
     fundamentals: object = None  # engine.Run for the same ticker
     companyfacts: dict = field(default_factory=dict, repr=False)
 
@@ -186,13 +209,13 @@ def _load(ticker: str) -> dict:
 
 
 def build_inputs(cfg: dict, base_revenue: float, nwc: float, bridge: Bridge, wacc: float, stub: float,
-                 overrides: dict | None = None) -> DCFInputs:
+                 overrides: dict | None = None, risk_free: float | None = None) -> DCFInputs:
     a = {k: v["value"] for k, v in cfg["assumptions"].items()} | (overrides or {})
     return DCFInputs(
         base_revenue=base_revenue, growth=a["growth"], operating_margin=a["operating_margin"], tax_rate=a["tax_rate"],
         reinvestment=Explicit(capex_pct=a["capex_pct"], dna_pct=a["dna_pct"], nwc_pct=nwc / base_revenue, base_nwc=nwc),
         wacc=wacc, terminal_growth=a["terminal_growth"], terminal_margin=a["terminal_margin"],
-        terminal_roic=a["terminal_roic"], bridge=bridge, stub=stub)
+        terminal_roic=a["terminal_roic"], bridge=bridge, stub=stub, risk_free=risk_free)
 
 
 def run(ticker: str) -> ValuationRun:
@@ -214,7 +237,11 @@ def run(ticker: str) -> ValuationRun:
     if not 0 < stub <= 1:
         raise ConfigError(f"valuation date {vdate} must fall inside the first forecast year")
 
-    fin_extra = {m: ds.value(m, by) or 0.0 for m in cfg["operating_nwc"].get("add_back_financing", [])}
+    fin_extra = {}
+    for m in cfg["operating_nwc"].get("add_back_financing", []):
+        if ds.value(m, by) is None:  # missing is not zero
+            raise ConfigError(f"operating NWC add-back {m}@{by} is missing; attest it or remove it from the list")
+        fin_extra[m] = ds.value(m, by)
     nwc = operating_nwc(cfg, cik, ds.annual_filings[by], fy_end, fin_extra)
 
     latest = fund.latest
@@ -266,12 +293,13 @@ def run(ticker: str) -> ValuationRun:
         / (pref_market / float(n_dep["value"]))))
     prices["risk_free"] = rf
 
-    base_in = build_inputs(cfg, base_revenue.value, nwc.value, bridge, w.wacc, stub)
+    base_in = build_inputs(cfg, base_revenue.value, nwc.value, bridge, w.wacc, stub, risk_free=rf.value)
     base = value(base_in)
     scenarios = {"base": base}
     for name, sc in (cfg.get("scenarios") or {}).items():
         over = {k: v for k, v in sc.items() if k != "rationale"}
-        scenarios[name] = value(build_inputs(cfg, base_revenue.value, nwc.value, bridge, w.wacc, stub, over))
+        over = {k: v for k, v in over.items() if k not in SCENARIO_META}
+        scenarios[name] = value(build_inputs(cfg, base_revenue.value, nwc.value, bridge, w.wacc, stub, over, rf.value))
 
     # reverse DCF at each price: one unknown at a time, everything else held fixed
     rev_out = {}
@@ -304,7 +332,27 @@ def run(ticker: str) -> ValuationRun:
         return value(replace(base_in, reinvestment=replace(ex, capex_pct=[c * k for c in ex.capex_pct]))).value_per_share - px
     breakevens = {"capex_multiplier_at_latest_price": solve(capex_scale, 0.2, 3.0)}
 
+    # the preferred claim: liquidation preference (base) vs market value of the depositary shares
+    pref_sens = [{"basis": "liquidation preference", "claim": bridge.other_senior_claims,
+                  "value_per_share": base.value_per_share},
+                 {"basis": f"market value at {vdate}", "claim": pref_market,
+                  "value_per_share": value(replace(base_in, bridge=replace(bridge, other_senior_claims=pref_market))).value_per_share}]
+
+    # relative valuation cross-check (clearly labelled; never averaged with the DCF)
+    from ..engine import build as build_run
+    from ..pipeline import companies as company_cfg
+    from .multiples import for_run
+    latest_px = date.fromisoformat(str(cfg["price_date"]))
+    mults = {}
+    for t, c in company_cfg().items():
+        r = fund if t == ticker else build_run(t)
+        mults[t] = for_run(t, r, latest_px, c["price_symbols"])
+
+    read = set(ids.values()) | {s["snapshot_id"] for s in cfg["sourced"].values()} | {rf.snapshot_id}
+    read |= {q.snapshot_id for k, v in prices.items() if k != "risk_free" for q in v.values()}
+
     return ValuationRun(ticker=ticker, cfg=cfg, problems=problems, valuation_date=vdate, stub=stub,
                         base_revenue=base_revenue, nwc=nwc, bridge_items=items, shares=shares, prices=prices,
                         market_cap=mcap, wacc=w, base=base, scenarios=scenarios, reverse=rev_out, grids=grids,
-                        nonoperating_sensitivity=nonop, breakevens=breakevens, fundamentals=fund, companyfacts=cf)
+                        nonoperating_sensitivity=nonop, breakevens=breakevens, fundamentals=fund, companyfacts=cf,
+                        preferred_sensitivity=pref_sens, multiples=mults, snapshots_read=sorted(read))

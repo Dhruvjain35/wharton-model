@@ -21,8 +21,13 @@ from .normalize import Dataset
 def money(v: float | None) -> str:
     if v is None:
         return "—"
+    from decimal import ROUND_HALF_UP, Decimal
+
     a = abs(v)
-    s = f"{a / 1e9:,.1f}bn" if a >= 1e9 else f"{a / 1e6:,.0f}m" if a >= 1e6 else f"{a:,.0f}"
+
+    def r(x: float, places: str) -> str:  # half-up on the decimal value, not binary-float half-even
+        return f"{Decimal(repr(x)).quantize(Decimal(places), rounding=ROUND_HALF_UP):,}"
+    s = f"{r(a / 1e9, '0.1')}bn" if a >= 1e9 else f"{r(a / 1e6, '1')}m" if a >= 1e6 else r(a, "1")
     return f"-${s}" if v < 0 else f"${s}"
 
 
@@ -112,12 +117,17 @@ def _eps_sentences(run: Run) -> list[str]:
             s.append(f"{row['period']}: bridge {row['status']} ({row['reason']}).")
             continue
         total = row["from_earnings_log"] + row["from_share_count_log"] + row["residual_log"]
-        share_part = row["from_share_count_log"] / total if total > 0 else None
+        earn, share = row["from_earnings_log"], row["from_share_count_log"]
+        if total > 0 and earn > 0 and share > 0:
+            why = f" — share-count reduction explains {pct(share / total)} of EPS growth (log basis)"
+        elif total > 0 and earn <= 0 < share:
+            why = " — net income fell; EPS rose only because the share count fell"
+        else:
+            why = ""
         s.append(
             f"{row['period']}: diluted EPS {pct(row['reported_eps_factor'] - 1, True)}; net income "
             f"{pct(row['net_income_factor'] - 1, True)}, diluted shares {pct(row['share_factor'] - 1, True)}"
-            + (f" — share-count reduction explains {pct(share_part)} of EPS growth (log basis)" if share_part is not None else "")
-            + f". It was bought with {money(row['buybacks'])} of repurchases while SBC was {money(row['sbc'])}.")
+            + why + f". It was bought with {money(row['buybacks'])} of repurchases while SBC was {money(row['sbc'])}.")
     return s
 
 
@@ -127,8 +137,9 @@ def _what_if_sentences(run: Run) -> list[str]:
     grow_r, grow_a = _v(run.reported, "eps_growth", b), _v(run.what_if, "eps_growth", b)
     if rep is None or alt is None or abs(rep - alt) < 0.005:
         return []
-    ids = sorted({a.id for a in run.adjustments if a.fiscal_label == b})
-    return [f"If every PROPOSED ledger entry for {b} were approved ({', '.join(ids)}), diluted EPS would be "
+    prev = run.reported.labels[-2] if len(run.reported.labels) > 1 else b
+    ids = sorted({a.id for a in run.adjustments if a.fiscal_label in (b, prev) and a.metric == "net_income"})
+    return [f"If the PROPOSED net-income entries for {prev} and {b} were approved ({', '.join(ids)}), diluted EPS would be "
             f"{per_share(alt)} instead of {per_share(rep)}, and EPS growth {pct(grow_a, True)} instead of "
             f"{pct(grow_r, True)}. None are approved yet; this is a preview for the team's review."]
 
@@ -159,7 +170,11 @@ def _fact_rows(ds: Dataset, recon_by_key: dict) -> list[dict]:
             "key": key, "metric": f.metric, "fiscal_label": f.fiscal_label, "value": f.value, "unit": f.unit,
             "status": f.status.value, "period_start": str(f.period_start or ""), "period_end": str(f.period_end),
             "formula": f.formula or "", "inputs": ";".join(f.inputs),
-            "accession": src.accession if src else "", "locator": src.locator if src else "",
+            "currency": f.currency or "", "scale": f.scale,
+            "accession": src.accession if src else "", "form": src.form if src else "",
+            "filed": str(src.filed) if src else "", "accepted": (src.accepted or "") if src else "",
+            "retrieved_at": src.retrieved_at if src else "", "locator": src.locator if src else "",
+            "candidates": ";".join(f"{c:g}" for c in f.candidates),
             "source_url": src.url if src else "", "snapshot_id": src.snapshot_id if src else "",
             "reconciliation": r.outcome if r else "", "statement_line": (r.line or "") if r else "",
             "statement": (r.statement or "") if r else "", "statement_url": (r.url or "") if r else "",
@@ -204,6 +219,15 @@ def _changed(a: Dataset, b: Dataset) -> set[str]:
 # ----------------------------------------------------------------------------- markdown
 
 
+def definitions(ds) -> list[str]:
+    """Every distinct formula a derived metric used, with the years it applied to."""
+    by: dict[tuple[str, str], list[str]] = {}
+    for f in ds.facts.values():
+        if f.formula and f.status.value == "derived" and "not presented" not in f.formula:
+            by.setdefault((f.metric, f.formula), []).append(f.fiscal_label)
+    return [f"| {m} | `{formula}` | {', '.join(sorted(labs))} |" for (m, formula), labs in sorted(by.items())]
+
+
 def markdown(run: Run, data: dict, peers_md: str = "") -> str:
     ds = run.reported
     c = ds.company
@@ -223,6 +247,7 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
         f"code `{data['run']['code_version']['commit'][:8] or 'uncommitted'}`"
         + (" (uncommitted changes)" if data["run"]["code_version"]["dirty"] else "") + f" · created {run.created_at}",
         "",
+        f"**Data vintage: {run.config.get('vintage', 'current (latest restated filings)')}.** "
         "Every figure below comes from SEC filings through pinned snapshots and deterministic Python. "
         "`fre verify-run` recomputes this run and proves the digest.",
         "",
@@ -282,12 +307,7 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
         L.append(f"- **{i.severity}** `{i.kind}` {i.message}")
     if not blocks and not warns:
         L.append("- Nothing open.")
-    L += ["", "## Definitions", "", "| Metric | Formula |", "|---|---|"]
-    seen = set()
-    for f in ds.facts.values():
-        if f.formula and f.metric not in seen and f.status == FactStatus.DERIVED and "not presented" not in f.formula:
-            seen.add(f.metric)
-            L.append(f"| {f.metric} | `{f.formula}` |")
+    L += ["", "## Definitions", "", "| Metric | Formula | Years |", "|---|---|---|", *definitions(ds)]
     L += ["", "Reported metrics map to XBRL tags: " + "; ".join(f"{m.id} = {', '.join(m.tags)}" for m in METRICS.values()), "",
           "Legend: † analyst-adjusted, ‼ conflicting, — missing or suppressed (see facts.csv notes for the reason).", ""]
     return "\n".join(L)
@@ -305,7 +325,8 @@ LATEST_BALANCE = [("cash", "Cash"), ("st_investments", "Marketable securities"),
 
 def _latest_section(run: Run) -> list[str]:
     if run.latest is None:
-        return ["## Latest reported period", "", "No 10-Q has been filed since the last 10-K in the pinned data.", ""]
+        return ["## Latest reported period", "", "No 10-Q had been filed after the last 10-K in this run's data "
+                "(as of its vintage).", ""]
     ds, lab = run.latest, run.latest_labels
     counts: dict[str, int] = {}
     for r in run.latest_reconciliation:

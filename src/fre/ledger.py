@@ -71,6 +71,8 @@ def build(ds: Dataset, entries: list[dict]) -> list[Adjustment]:
     out = []
     for e in entries:
         label = e["fiscal_label"]
+        if label not in ds.labels:  # outside this run's window (e.g. an as-of run): not applicable
+            continue
         names = {k.split("@")[0]: f.value for k, f in ds.facts.items()
                  if k.endswith(f"@{label}") and f.value is not None}
         if e["metric"] not in names:
@@ -106,6 +108,15 @@ def _money_phrases(value: float) -> list[str]:
     return out
 
 
+def _figure_in(quote: str, v: float) -> bool:
+    """The value appears as a whole number in millions, or as the same value rounded to $x.x billion."""
+    millions = re.escape(f"{abs(v) / 1e6:,.0f}")
+    if re.search(rf"(?<![\d,.]){millions}(?![\d,]|\.\d)", quote):
+        return True
+    b = f"{abs(v) / 1e9:.1f}"
+    return abs(v) >= 1e9 and re.search(rf"\$ ?{re.escape(b)} billion", quote) is not None
+
+
 def verify_quotes(entries: list[dict], text_for, ds: Dataset | None = None) -> list[str]:
     """Every quote must appear verbatim in its snapshot and contain the number it supports."""
     problems = []
@@ -117,13 +128,13 @@ def verify_quotes(entries: list[dict], text_for, ds: Dataset | None = None) -> l
                 problems.append(f"{e['id']}.evidence: quote not found verbatim in snapshot {ev['snapshot_id']}")
             elif ev.get("fact") and ds is not None:
                 v = ds.value(ev["fact"], e["fiscal_label"])
-                if v is None or f"{abs(v) / 1e6:,.0f}" not in quote:
+                if v is None or not _figure_in(quote, v):
                     problems.append(f"{e['id']}.evidence: {ev['fact']}@{e['fiscal_label']} value not in its quote")
         for cname, c in (e.get("constants") or {}).items():
             quote = " ".join(c["quote"].split())
             if quote not in text_for(c["snapshot_id"]):
                 problems.append(f"{e['id']}.{cname}: quote not found verbatim in snapshot {c['snapshot_id']}")
-            elif not any(p in quote for p in _money_phrases(float(c["value"]))):
+            elif not any(re.search(rf"(?<![\d,.]){re.escape(p)}(?![\d]|\.\d)", quote) for p in _money_phrases(float(c["value"]))):
                 problems.append(f"{e['id']}.{cname}: value {float(c['value']) / 1e9:g}bn does not appear in its quote")
     return problems
 

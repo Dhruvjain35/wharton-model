@@ -8,7 +8,9 @@ Outcomes per fact:
   mismatch     the statement shows a different value -> blocks the fact
   ambiguous    the tag is on several lines and none equals the value -> blocks
   matched-in-notes  not on a primary statement, but a note detail table shows this tag, period and value
-  from-notes   not found on a primary statement or a parsed note table; verify by hand
+  matched-in-text   weakest tier: the printed value (or an explicit "no ... outstanding") sits next to
+               the metric's keyword in the filing document; the snippet is kept as evidence
+  from-notes   not found on a primary statement, a parsed note table or the text; verify by hand
   not-checked  derived, missing or conflicting facts (their own review items already cover them)
 """
 
@@ -31,9 +33,14 @@ class ReconRecord:
     line: str | None = None
     url: str | None = None
     snapshot_id: str | None = None
+    scale: float | None = None  # presentation scale of the statement the value was found on
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+def _scale_for(st: Statement, unit: str) -> float:
+    return st.usd_scale if unit == "USD" else st.share_scale if unit == "shares" else 1.0
 
 
 def _tolerance(unit: str, value: float) -> float:
@@ -41,6 +48,48 @@ def _tolerance(unit: str, value: float) -> float:
         return 0.005
     # statements present in millions (or thousands); allow half a presentation unit
     return 0.5e6 if abs(value) >= 1e6 else 0.5
+
+
+# tags a cash flow statement prints with the opposite sign: outflows, and gains removed from net income
+NEGATED_ON_CASH_FLOW = __import__("re").compile(r":(Payments|Repayments|.*GainLoss|IncreaseDecrease|.*FvNi)")
+
+TEXT_KEYWORDS = {
+    "commercial_paper": r"commercial paper",
+    "debt_lt_current": r"short-term debt|current portion",
+    "operating_lease_liability": r"operating lease liabilit",
+    "finance_lease_liability": r"finance lease liabilit",
+    "shares_outstanding": r"shares (issued and )?outstanding|outstanding shares",
+    "unvested_rsus": r"unvested",
+    "preferred_dividends": r"preferred",
+}
+
+
+def _in_text(key, f, src, fetch_text) -> ReconRecord | None:
+    """Weakest tier: the value as printed, next to the metric's own keyword, in the filing document."""
+    import re
+
+    kw = TEXT_KEYWORDS.get(f.metric)
+    if not kw or fetch_text is None or not src.url.endswith(".htm") or src.url.endswith("-index.htm"):
+        return None
+    text = fetch_text(src.url)
+    if f.value == 0:
+        m = re.search(rf"\bno (?:{kw})[^.]{{0,80}}outstanding", text, re.I)
+        if m:
+            return ReconRecord(fact=key, outcome="matched-in-text", expected=0.0, found=0.0,
+                               statement="filing text", line=m.group(0), url=src.url)
+        return None
+    scale = 1e6 if abs(f.value) >= 1e6 else 1.0
+    if abs(abs(f.value) / scale - round(abs(f.value) / scale)) > 1e-9:
+        return None
+    forms = [re.escape(f"{abs(f.value) / scale:,.0f}")]
+    if abs(f.value) >= 1e9 and abs(f.value) % 1e8 == 0:  # "$2.3 billion", "$ 2.3 billion"
+        forms.append(rf"\$ ?{re.escape(f'{abs(f.value) / 1e9:.1f}')} billion")
+    for m in re.finditer(rf"(?<![\d,.])(?:{'|'.join(forms)})(?![\d,]|\.\d)", text):
+        window = text[max(0, m.start() - 250):m.end() + 60]  # keyword must sit right next to the figure
+        if re.search(kw, window, re.I):
+            return ReconRecord(fact=key, outcome="matched-in-text", expected=f.value, found=f.value,
+                               statement="filing text", line=text[max(0, m.start() - 120):m.end() + 20], url=src.url)
+    return None
 
 
 def _in_notes(key, f, src, months, cik, fetch_notes, notes_cache) -> ReconRecord:
@@ -58,11 +107,12 @@ def _in_notes(key, f, src, months, cik, fetch_notes, notes_cache) -> ReconRecord
                 v = st.scaled(row, i, f.unit)
                 if v is not None and (abs(v - f.value) <= tol or abs(v + f.value) <= tol):
                     return ReconRecord(fact=key, outcome="matched-in-notes", expected=f.value, found=v,
-                                       statement=st.title, line=row.label, url=st.url, snapshot_id=st.snapshot_id)
+                                       statement=st.title, line=row.label, url=st.url, snapshot_id=st.snapshot_id,
+                                       scale=_scale_for(st, f.unit))
     return ReconRecord(fact=key, outcome="from-notes", expected=f.value)
 
 
-def reconcile(ds: Dataset, fetch=primary_statements, fetch_notes=None) -> list[ReconRecord]:
+def reconcile(ds: Dataset, fetch=primary_statements, fetch_notes=None, fetch_text=None) -> list[ReconRecord]:
     cik = int(ds.company.cik)
     cache: dict[str, list[Statement]] = {}
     notes_cache: dict[str, list[Statement]] = {}
@@ -88,12 +138,16 @@ def reconcile(ds: Dataset, fetch=primary_statements, fetch_notes=None) -> list[R
                 if v is not None:
                     hits.append((st, row, v))
         if not hits:
-            records.append(_in_notes(key, f, src, months, cik, fetch_notes, notes_cache))
+            rec = _in_notes(key, f, src, months, cik, fetch_notes, notes_cache)
+            if rec.outcome == "from-notes":
+                rec = _in_text(key, f, src, fetch_text) or rec
+            records.append(rec)
             continue
         tol = _tolerance(f.unit, f.value)
         exact = [h for h in hits if abs(h[2] - f.value) <= tol]
         # cash flow statements print many items with the opposite sign (outflows, gains removed from CFO)
-        negated = [h for h in hits if h[0].is_cash_flow and abs(h[2] + f.value) <= tol]
+        negated = [h for h in hits if h[0].is_cash_flow and NEGATED_ON_CASH_FLOW.search(src.locator)
+                   and abs(h[2] + f.value) <= tol]
         if exact:
             (st, row, found), outcome = exact[0], "matched"
         elif negated:
@@ -102,8 +156,15 @@ def reconcile(ds: Dataset, fetch=primary_statements, fetch_notes=None) -> list[R
             (st, row, found) = hits[0]
             outcome = "ambiguous" if len({h[2] for h in hits}) > 1 else "mismatch"
         records.append(ReconRecord(fact=key, outcome=outcome, expected=f.value, found=found, statement=st.title,
-                                   line=row.label, url=st.url, snapshot_id=st.snapshot_id))
+                                   line=row.label, url=st.url, snapshot_id=st.snapshot_id,
+                                   scale=_scale_for(st, f.unit)))
 
+    for r in records:  # record the filing's presentation scale on every fact a statement or table verified
+        f = ds.facts[r.fact]
+        if r.outcome in ("matched", "matched-negated", "matched-in-notes") and r.scale:
+            ds.facts[r.fact] = f.model_copy(update={"scale": int(r.scale)})
+        elif r.outcome == "matched-in-text":
+            ds.facts[r.fact] = f.model_copy(update={"scale": 1_000_000 if abs(f.value or 0) >= 1e6 else 1})
     for r in records:
         metric, label = r.fact.split("@")
         if r.outcome in ("mismatch", "ambiguous"):

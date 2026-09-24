@@ -63,3 +63,17 @@ def test_class_shares_must_appear_in_the_class_split_quote():
     cfg["class_shares"]["class_c"]["shares"] = 5.527e9
     cfg["class_shares"]["class_b"]["shares"] = 0.935e9   # sum no longer 12,230
     assert any("class_b" in p or "sum" in p for p in check_sourced_values(cfg))
+
+
+def test_scenarios_need_metadata_and_stay_inside_assumption_ranges():
+    c = cfg(terminal_growth=GOOD)
+    c["scenarios"] = {"adverse": {"terminal_growth": 0.05, "rationale": "r"}}
+    problems = validate(c)
+    assert any("owner" in p for p in problems) and any("range" in p for p in problems)
+
+
+def test_ai_reviewer_cannot_approve_an_assumption():
+    c = cfg(terminal_growth=GOOD | {"status": "approved", "reviewer": "Claude"})
+    assert any("human reviewer" in p for p in validate(c))
+    c = cfg(terminal_growth=GOOD | {"status": "approved", "reviewer": "Priya"})
+    assert validate(c) == []
