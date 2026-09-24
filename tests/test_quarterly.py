@@ -79,3 +79,9 @@ def test_pre_split_quarterly_share_values_are_rebased():
     split = CorporateAction(kind="split", ratio=20, effective=date(2022, 7, 15), source="t")
     f = ytd(cf, "eps_diluted", date(2022, 1, 1), date(2022, 3, 31), actions=[split])
     assert f.value == 1.0 and f.status == FactStatus.DERIVED
+
+
+def test_quarter_start_for_the_latest_standalone_quarter():
+    from fre.latest import _quarter_start
+    assert _quarter_start(date(2026, 6, 30)) == date(2026, 4, 1)
+    assert _quarter_start(date(2026, 2, 28)) == date(2025, 12, 1)

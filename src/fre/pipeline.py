@@ -17,6 +17,10 @@ LOCK = ROOT / "data" / "snapshots" / "lock.json"
 
 
 def companies() -> dict:
+    return {k: v for k, v in config().items() if k != "comparability"}
+
+
+def config() -> dict:
     return yaml.safe_load(CONFIG.read_text())
 
 

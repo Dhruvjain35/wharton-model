@@ -59,7 +59,7 @@ _SPECS = [
                ("NetCashProvidedByUsedInOperatingActivities",)),
     MetricSpec("capex", "Purchases of property and equipment", "duration", "USD",
                ("PaymentsToAcquirePropertyPlantAndEquipment",)),
-    MetricSpec("dna", "Depreciation and amortization (cash flow)", "duration", "USD",
+    MetricSpec("dna", "Depreciation (and amortization where the tag includes it)", "duration", "USD",
                ("DepreciationDepletionAndAmortization", "DepreciationAmortizationAndAccretionNet",
                 "DepreciationAndAmortization", "Depreciation"),
                note="If only the Depreciation tag exists, intangible amortization is excluded."),

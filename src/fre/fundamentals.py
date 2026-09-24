@@ -149,6 +149,29 @@ def compute(ds: Dataset) -> Dataset:
             _derive(ds, "eps_growth", label, "pure", "eps_diluted / prior eps_diluted - 1", ["eps_diluted", "eps_diluted"],
                     _eps_growth, input_labels=[label, prior])
 
+    # ---- ROIC (PRD A2: optional until the capital and tax definitions are reviewed)
+    for label in ds.labels:
+        _derive(ds, "nopat", label, "USD", "operating_income * (1 - effective_tax_rate)",
+                ["operating_income", "effective_tax_rate"], lambda e, t: e * (1 - t))
+        _derive(ds, "invested_capital", label, "USD",
+                "equity + total_debt - cash - st_investments - other_lt_investments",
+                ["equity", "total_debt", "cash", "st_investments", "other_lt_investments"],
+                lambda e, d, c, s, o: e + d - c - s - o)
+    for label in ds.labels:
+        prior = _prior(ds, label)
+        if prior is None:
+            _put(ds, "roic", label, "pure", None, "nopat / average invested_capital", [],
+                 [f"Suppressed: FY{int(label[2:]) - 1} balance sheet is not in the loaded window"])
+            continue
+        _derive(ds, "roic", label, "pure", "nopat / ((invested_capital + prior invested_capital) / 2)",
+                ["nopat", "invested_capital", "invested_capital"],
+                lambda n, a, b: (None, "Suppressed: average invested capital is not positive") if a + b <= 0 else n / ((a + b) / 2),
+                input_labels=[label, label, prior])
+        f = ds.facts[f"roic@{label}"]
+        ds.add(f.model_copy(update={"notes": f.notes + [
+            "Proposed definition (PRD A2 optional): operating leases excluded from capital, non-marketable "
+            "securities treated as non-operating; review before relying on it"]}))
+
     # ---- window statistics, stored on the final year
     first, last = ds.labels[0], ds.labels[-1]
     years = len(ds.labels) - 1

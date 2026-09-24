@@ -23,32 +23,32 @@
   "bridge_items": {
     "cash": {
       "label": "cash",
-      "source": "0001652044-26-000071 us-gaap:CashAndCashEquivalentsAtCarryingValue at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:CashAndCashEquivalentsAtCarryingValue at 2026-06-30 [reconciliation: matched]",
       "value": 55911000000.0
     },
     "commercial_paper": {
       "label": "commercial_paper",
-      "source": "0001652044-26-000071 us-gaap:CommercialPaper at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:CommercialPaper at 2026-06-30 [reconciliation: from-notes]",
       "value": 0.0
     },
     "debt_lt_current": {
       "label": "debt_lt_current",
-      "source": "0001652044-26-000071 us-gaap:LongTermDebtCurrent at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:LongTermDebtCurrent at 2026-06-30 [reconciliation: from-notes]",
       "value": 1999000000.0
     },
     "debt_lt_noncurrent": {
       "label": "debt_lt_noncurrent",
-      "source": "0001652044-26-000071 us-gaap:LongTermDebtNoncurrent at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:LongTermDebtNoncurrent at 2026-06-30 [reconciliation: matched]",
       "value": 98165000000.0
     },
     "finance_lease_liability": {
       "label": "finance_lease_liability",
-      "source": "0001652044-26-000071 us-gaap:FinanceLeaseLiability at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:FinanceLeaseLiability at 2026-06-30 [reconciliation: from-notes]",
       "value": 2590000000.0
     },
     "other_lt_investments": {
       "label": "other_lt_investments",
-      "source": "0001652044-26-000071 us-gaap:OtherLongTermInvestments at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:OtherLongTermInvestments at 2026-06-30 [reconciliation: matched]",
       "value": 131461000000.0
     },
     "preferred_claim": {
@@ -58,7 +58,7 @@
     },
     "st_investments": {
       "label": "st_investments",
-      "source": "0001652044-26-000071 us-gaap:MarketableSecuritiesCurrent at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:MarketableSecuritiesCurrent at 2026-06-30 [reconciliation: matched]",
       "value": 186563000000.0
     }
   },
@@ -278,7 +278,8 @@
       ],
       "add_back_financing": [
         "debt_lt_current",
-        "finance_lease_liability_current"
+        "finance_lease_liability_current",
+        "commercial_paper"
       ],
       "subtract": [
         "us-gaap:AccountsPayableCurrent",
@@ -313,6 +314,7 @@
     },
     "scenarios": {
       "adverse": {
+        "as_of": "2026-09-24",
         "capex_pct": [
           0.36,
           0.34,
@@ -334,11 +336,14 @@
           0.28,
           0.28
         ],
+        "owner": "Claude (AI-proposed)",
         "rationale": "Joint stress (PRD B5): growth normalizes faster while capex intensity stays higher for longer, and the new capital earns less. The pieces move together; they are not independent shocks.",
+        "status": "proposed",
         "terminal_margin": 0.28,
         "terminal_roic": 0.14
       },
       "favorable": {
+        "as_of": "2026-09-24",
         "capex_pct": [
           0.3,
           0.24,
@@ -360,9 +365,25 @@
           0.35,
           0.35
         ],
+        "owner": "Claude (AI-proposed)",
         "rationale": "Growth holds up, the capex wave normalizes quickly, and margins expand as revenue from the new capacity arrives. Assumes the investment earns high returns.",
+        "status": "proposed",
         "terminal_margin": 0.35,
         "terminal_roic": 0.28
+      },
+      "flat_ebitda": {
+        "as_of": "2026-09-24",
+        "operating_margin": [
+          0.33,
+          0.305,
+          0.285,
+          0.275,
+          0.27
+        ],
+        "owner": "Claude (AI-proposed)",
+        "rationale": "Base case, except EBITDA margin (operating margin + depreciation) is held at its FY2026 level of 39.5%, so operating margin falls as depreciation from the capex wave rises. Tests whether the base case quietly assumes margin expansion (it raises implied EBITDA margin from 39.5% to 44.5%).",
+        "status": "proposed",
+        "terminal_margin": 0.27
       }
     },
     "sourced": {
@@ -415,7 +436,7 @@
       "cash_fcf_ytd": 4261000000.0,
       "cash_fcf_ytd_prior": 24254000000.0,
       "dna_intensity_ytd": 0.059148773139682705,
-      "equity_gains_share_of_net_income_ytd": 0.7778521608275972,
+      "equity_gains_share_of_pretax_ytd": 0.6288992205028566,
       "operating_margin_ttm": 0.331103963971238,
       "operating_margin_ytd": 0.3503212998275952,
       "revenue_growth_ytd": 0.23052362023336292
@@ -560,7 +581,7 @@
         [
           113.28903674434204,
           122.60483182156018,
-          132.64070319828346,
+          132.6407031982835,
           143.43760904755558,
           155.03803608343142,
           167.48602763054447,
@@ -579,16 +600,16 @@
           167.02693506299568,
           180.4946573098575,
           194.92609141622367,
-          210.37214765705485,
+          210.3721476570549,
           226.8855035977354,
-          244.52063431806982,
+          244.52063431806985,
           263.333842636278,
           283.38328933299084
         ],
         [
           130.3812068406486,
           141.24079094303124,
-          152.9345771139041,
+          152.93457711390414,
           165.5098938866586,
           179.01583404255987,
           193.50328698917045,
@@ -602,7 +623,7 @@
         [
           138.92729188880185,
           150.55877050376677,
-          163.08151407171448,
+          163.0815140717145,
           176.5460363062101,
           191.00473302212416,
           206.51191666848345,
@@ -616,7 +637,7 @@
         [
           147.47337693695513,
           159.87675006450237,
-          173.2284510295248,
+          173.22845102952488,
           187.5821787257617,
           202.99363200168844,
           219.52054634779645,
@@ -629,12 +650,12 @@
         ],
         [
           156.0194619851084,
-          169.19472962523787,
+          169.1947296252379,
           183.37538798733513,
           198.6183211453132,
           214.98253098125267,
           232.5291760271094,
-          251.32161030642112,
+          251.32161030642115,
           271.4254221760154,
           292.9084731677153,
           315.84093683004824,
@@ -644,9 +665,9 @@
         [
           164.56554703326168,
           178.5127091859734,
-          193.52232494514547,
+          193.52232494514553,
           209.65446356486467,
-          226.97142996081686,
+          226.97142996081695,
           245.53780570642243,
           265.42049002897045,
           286.68874080575546,
@@ -728,28 +749,28 @@
           126.83509185863731
         ],
         [
-          235.0611698819776,
-          215.31497197508872,
-          198.63581754537466,
+          235.06116988197766,
+          215.31497197508878,
+          198.63581754537472,
           184.36586074289005,
-          172.0226977038599,
-          161.24454041699508,
+          172.02269770385996,
+          161.24454041699514,
           151.7547410083542,
           143.33814128123572,
           135.82489083752472,
           129.07911977637295
         ],
         [
-          249.17950956974312,
+          249.1795095697432,
           226.4818977271586,
-          207.5960028528022,
-          191.64160292154517,
-          177.98998318309216,
+          207.59600285280223,
+          191.6416029215452,
+          177.98998318309222,
           166.18009993899696,
-          155.86618291960028,
+          155.8661829196003,
           146.78383095439014,
           138.72740909887585,
-          131.53458352294192
+          131.53458352294194
         ],
         [
           266.37233830123364,
@@ -812,9 +833,142 @@
       ]
     }
   },
+  "implied_exit_ev_ebit": {
+    "adverse": 10.809783436437886,
+    "base": 11.694220263055529,
+    "favorable": 12.283844814133962,
+    "flat_ebitda": 11.694220263055527
+  },
   "market_cap": {
     "latest": 4115908950000.0,
     "valuation_date": 4348306020000.0
+  },
+  "multiples": {
+    "GOOGL": {
+      "balance_date": "2026-06-30",
+      "classes": [
+        {
+          "price": 337.83,
+          "price_date": "2026-09-23",
+          "section": "Class A Common Stock",
+          "shares": 5868000000.0,
+          "symbol": "GOOGL"
+        },
+        {
+          "price": 334.98,
+          "price_date": "2026-09-23",
+          "section": "Class C share repurchases",
+          "shares": 5527000000.0,
+          "symbol": "GOOG"
+        },
+        {
+          "price": 337.83,
+          "price_date": "2026-09-23",
+          "section": "Class B Common Stock",
+          "shares": 835000000.0,
+          "symbol": "GOOGL"
+        }
+      ],
+      "ebit": 147628000000.0,
+      "enterprise_value": 3994211950000.0,
+      "ev_components": {
+        "cash": 55911000000.0,
+        "debt": 102754000000.0,
+        "market_cap": 4115908950000.0,
+        "marketable": 186563000000.0,
+        "preferred": 18023000000.0
+      },
+      "ev_ebit": 27.0559240117051,
+      "fcf": 53273000000.0,
+      "fcf_yield": 0.012943192049960191,
+      "market_cap": 4115908950000.0,
+      "net_income": 244205000000.0,
+      "notes": [
+        "'Class A Common Stock' priced at its own trading symbol GOOGL (cover page)",
+        "'Class C share repurchases' priced at its own trading symbol GOOG (cover page)",
+        "'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping)"
+      ],
+      "pe": 16.854318912389182,
+      "price_date": "2026-09-23",
+      "ticker": "GOOGL",
+      "window": "TTM to 2026-06-30"
+    },
+    "META": {
+      "balance_date": "2026-06-30",
+      "classes": [
+        {
+          "price": 744.1,
+          "price_date": "2026-09-23",
+          "section": "Common Class A",
+          "shares": 2205128509.0,
+          "symbol": "META"
+        },
+        {
+          "price": 744.1,
+          "price_date": "2026-09-23",
+          "section": "Common Class B",
+          "shares": 342377716.0,
+          "symbol": "META"
+        }
+      ],
+      "ebit": 86926000000.0,
+      "enterprise_value": null,
+      "ev_components": {
+        "cash": 15462000000.0,
+        "debt": null,
+        "market_cap": 1895599382022.5002,
+        "marketable": 74798000000.0,
+        "preferred": 0.0
+      },
+      "ev_ebit": null,
+      "fcf": 40976000000.0,
+      "fcf_yield": 0.021616381809684313,
+      "market_cap": 1895599382022.5002,
+      "net_income": 68098000000.0,
+      "notes": [
+        "'Common Class A' priced at META (no trading symbol on the cover page; config mapping)",
+        "'Common Class B' priced at META (no trading symbol on the cover page; config mapping)",
+        "EV not computed: debt not reported at the balance-sheet date",
+        "EV/EBIT: input missing"
+      ],
+      "pe": 27.836344415731745,
+      "price_date": "2026-09-23",
+      "ticker": "META",
+      "window": "TTM to 2026-06-30"
+    },
+    "MSFT": {
+      "balance_date": "FY2026",
+      "classes": [
+        {
+          "price": 500.59,
+          "price_date": "2026-09-23",
+          "section": "Common stock",
+          "shares": 7425545491.0,
+          "symbol": "MSFT"
+        }
+      ],
+      "ebit": 155237000000.0,
+      "enterprise_value": 3747198817339.69,
+      "ev_components": {
+        "cash": 20935000000.0,
+        "debt": 106888000000.0,
+        "market_cap": 3717153817339.69,
+        "marketable": 55908000000.0,
+        "preferred": 0.0
+      },
+      "ev_ebit": 24.13856759238899,
+      "fcf": 66987000000.0,
+      "fcf_yield": 0.018021046018467313,
+      "market_cap": 3717153817339.69,
+      "net_income": 133749000000.0,
+      "notes": [
+        "'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping)"
+      ],
+      "pe": 27.792012032536242,
+      "price_date": "2026-09-23",
+      "ticker": "MSFT",
+      "window": "FY2026"
+    }
   },
   "nonoperating_sensitivity": [
     {
@@ -836,9 +990,22 @@
   ],
   "operating_nwc": {
     "label": "operating NWC",
-    "source": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R3.htm: + Accounts receivable, net 62,886m + Other current assets 16,309m - Accounts payable 12,200m - Accrued compensation and benefits 17,546m - Accrued expenses and other current liabilities 55,557m - Accrued revenue share 10,864m - Deferred revenue 6,578m + debt_lt_current 1,996m (financing item inside a subtracted line) + finance_lease_liability_current 441m (financing item inside a subtracted line)",
+    "source": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R3.htm: + Accounts receivable, net 62,886m + Other current assets 16,309m - Accounts payable 12,200m - Accrued compensation and benefits 17,546m - Accrued expenses and other current liabilities 55,557m - Accrued revenue share 10,864m - Deferred revenue 6,578m + debt_lt_current 1,996m (financing item inside a subtracted line) + finance_lease_liability_current 441m (financing item inside a subtracted line) + commercial_paper 0m (financing item inside a subtracted line)",
     "value": -21113000000.0
   },
+  "outputs_digest": "ada69ef2f9d6eb26b2a33c623bd11e84741a21183ad8a17b3c9eea05032ea663",
+  "preferred_sensitivity": [
+    {
+      "basis": "liquidation preference",
+      "claim": 19250000000.0,
+      "value_per_share": 199.0038811371261
+    },
+    {
+      "basis": "market value at 2026-06-30",
+      "claim": 19479075000.0,
+      "value_per_share": 198.98559025561858
+    }
+  ],
   "prices": {
     "latest": {
       "GOOG": {
@@ -1151,7 +1318,7 @@
         "monotonic": true,
         "price": 357.37,
         "roots": [
-          0.2861108995724156
+          0.2861108995724155
         ],
         "status": "unique",
         "variable": "growth",
@@ -1309,13 +1476,38 @@
       }
     }
   },
+  "run": {
+    "code_version": {
+      "commit": "41bc18bd3621575ae24967c206fc9e2d713e2a24",
+      "dirty": true
+    },
+    "created_at": "2026-09-24T06:26:09+00:00",
+    "kind": "valuation",
+    "snapshots_read": [
+      "1b4e671893d74a58",
+      "28470d524a15e6f5",
+      "7535bace5e1c8d66",
+      "82d3e3afd98872c0",
+      "91b8e9866e7cca16",
+      "9624fe558574d3c3",
+      "970b700eefd5ace6",
+      "a017f26ee88cb4a6",
+      "a14042e293aec25f",
+      "a846896587784fe4",
+      "cdfad4cbc6e4e67e",
+      "e3981f87a22344b5"
+    ],
+    "ticker": "GOOGL"
+  },
   "scenarios": {
     "adverse": {
       "enterprise_value": 1411632298379.519,
       "equity_value": 1663563298379.519,
       "flags": [
+        "Implied EBITDA margin rises from 37.5% to 40.5% because depreciation grows while operating margin is held: is that expansion intended?",
         "92% of operating EV is terminal value: the result mostly reflects terminal assumptions"
       ],
+      "implied_exit_ev_ebit": 10.809783436437886,
       "inputs": {
         "base_revenue": 402836000000.0,
         "bridge": {
@@ -1360,6 +1552,7 @@
           "method": "Explicit",
           "nwc_pct": -0.05241090667169766
         },
+        "risk_free": 0.0444,
         "stub": 0.5041095890410959,
         "tax_rate": 0.17,
         "terminal_growth": 0.03,
@@ -1463,8 +1656,11 @@
       "enterprise_value": 2240393607361.367,
       "equity_value": 2492324607361.367,
       "flags": [
+        "Revenue growth drops from 8.0% in year 5 to 3.0% in perpetuity: consider more explicit years so the business reaches maturity first",
+        "Implied EBITDA margin rises from 39.5% to 44.5% because depreciation grows while operating margin is held: is that expansion intended?",
         "86% of operating EV is terminal value: the result mostly reflects terminal assumptions"
       ],
+      "implied_exit_ev_ebit": 11.694220263055529,
       "inputs": {
         "base_revenue": 402836000000.0,
         "bridge": {
@@ -1509,6 +1705,7 @@
           "method": "Explicit",
           "nwc_pct": -0.05241090667169766
         },
+        "risk_free": 0.0444,
         "stub": 0.5041095890410959,
         "tax_rate": 0.17,
         "terminal_growth": 0.03,
@@ -1612,8 +1809,11 @@
       "enterprise_value": 3070718142816.0933,
       "equity_value": 3322649142816.0933,
       "flags": [
+        "Revenue growth drops from 10.0% in year 5 to 3.0% in perpetuity: consider more explicit years so the business reaches maturity first",
+        "Implied EBITDA margin rises from 41.5% to 47.5% because depreciation grows while operating margin is held: is that expansion intended?",
         "83% of operating EV is terminal value: the result mostly reflects terminal assumptions"
       ],
+      "implied_exit_ev_ebit": 12.283844814133962,
       "inputs": {
         "base_revenue": 402836000000.0,
         "bridge": {
@@ -1658,6 +1858,7 @@
           "method": "Explicit",
           "nwc_pct": -0.05241090667169766
         },
+        "risk_free": 0.0444,
         "stub": 0.5041095890410959,
         "tax_rate": 0.17,
         "terminal_growth": 0.03,
@@ -1756,17 +1957,169 @@
       "terminal_share": 0.8305118124783736,
       "terminal_value": 3764861948346.463,
       "value_per_share": 265.3025505282732
+    },
+    "flat_ebitda": {
+      "enterprise_value": 1878307900854.748,
+      "equity_value": 2130238900854.748,
+      "flags": [
+        "Revenue growth drops from 8.0% in year 5 to 3.0% in perpetuity: consider more explicit years so the business reaches maturity first",
+        "87% of operating EV is terminal value: the result mostly reflects terminal assumptions"
+      ],
+      "implied_exit_ev_ebit": 11.694220263055527,
+      "inputs": {
+        "base_revenue": 402836000000.0,
+        "bridge": {
+          "debt": 102754000000.0,
+          "diluted_shares": 12524000000.0,
+          "excess_cash": 242474000000.0,
+          "nonoperating_assets": 131461000000.0,
+          "other_senior_claims": 19250000000.0
+        },
+        "growth": [
+          0.2,
+          0.15,
+          0.12,
+          0.1,
+          0.08
+        ],
+        "interest_expense": null,
+        "net_borrowing": null,
+        "operating_margin": [
+          0.33,
+          0.305,
+          0.285,
+          0.275,
+          0.27
+        ],
+        "reinvestment": {
+          "base_nwc": -21113000000.0,
+          "capex_pct": [
+            0.33,
+            0.3,
+            0.25,
+            0.2,
+            0.17
+          ],
+          "dna_pct": [
+            0.065,
+            0.09,
+            0.11,
+            0.12,
+            0.125
+          ],
+          "method": "Explicit",
+          "nwc_pct": -0.05241090667169766
+        },
+        "risk_free": 0.0444,
+        "stub": 0.5041095890410959,
+        "tax_rate": 0.17,
+        "terminal_growth": 0.03,
+        "terminal_margin": 0.27,
+        "terminal_roic": 0.2,
+        "terminal_tax_rate": null,
+        "terminal_wacc": null,
+        "wacc": 0.09032894747406298
+      },
+      "pv_terminal": 1629486609767.354,
+      "reinvestment_rate": 0.15,
+      "rows": [
+        {
+          "capex": 159523056000.0,
+          "delta_nwc": -4222600000.0,
+          "discount_factor": 0.9573414935251684,
+          "dna": 31421208000.0,
+          "ebit": 159523056000.0,
+          "fcff": 8524888480.0,
+          "fcff_counted": 4297478028.2739725,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 123879248000.0,
+          "nopat": 132404136480.0,
+          "pv": 4114154033.9794006,
+          "revenue": 483403200000.0,
+          "taxes": 27118919520.000004,
+          "year": 1
+        },
+        {
+          "capex": 166774104000.0,
+          "delta_nwc": -3800340000.0,
+          "discount_factor": 0.878029970444256,
+          "dna": 50032231200.0,
+          "ebit": 169553672400.0,
+          "fcff": 27788015292.0,
+          "fcff_counted": 27788015292.0,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 112941532800.0,
+          "nopat": 140729548092.0,
+          "pv": 24398710245.539295,
+          "revenue": 555913680000.0,
+          "taxes": 28824124308.000004,
+          "year": 2
+        },
+        {
+          "capex": 155655830400.0,
+          "delta_nwc": -3496312800.0,
+          "discount_factor": 0.8052890574705601,
+          "dna": 68488565376.0,
+          "ebit": 177447646656.0,
+          "fcff": 63610594500.48001,
+          "fcff_counted": 63610594500.48001,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 83670952224.0,
+          "nopat": 147281546724.48,
+          "pv": 51224915690.43354,
+          "revenue": 622623321600.0,
+          "taxes": 30166099931.52,
+          "year": 3
+        },
+        {
+          "capex": 136977130752.0,
+          "delta_nwc": -3263225280.0,
+          "discount_factor": 0.738574408517863,
+          "dna": 82186278451.2,
+          "ebit": 188343554784.0,
+          "fcff": 104797523449.92,
+          "fcff_counted": 104797523449.92,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 51527627020.8,
+          "nopat": 156325150470.72,
+          "pv": 77400768896.16154,
+          "revenue": 684885653760.0,
+          "taxes": 32018404313.280003,
+          "year": 4
+        },
+        {
+          "capex": 125745006030.33601,
+          "delta_nwc": -2871638246.4000015,
+          "discount_factor": 0.6773867741738853,
+          "dna": 92459563257.6,
+          "ebit": 199712656636.41602,
+          "fcff": 135347700481.88928,
+          "fcff_counted": 135347700481.88928,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 30413804526.336006,
+          "nopat": 165761505008.22528,
+          "pv": 91682742221.2802,
+          "revenue": 739676506060.8,
+          "taxes": 33951151628.190723,
+          "year": 5
+        }
+      ],
+      "terminal_fcff": 145124197634.70123,
+      "terminal_nopat": 170734350158.47205,
+      "terminal_share": 0.8675290185521954,
+      "terminal_value": 2405548309907.014,
+      "value_per_share": 170.09253440232737
     }
   },
   "shares": {
     "outstanding": {
       "label": "shares_outstanding",
-      "source": "0001652044-26-000071 us-gaap:CommonStockSharesOutstanding at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:CommonStockSharesOutstanding at 2026-06-30 [reconciliation: from-notes]",
       "value": 12230000000.0
     },
     "unvested_rsus": {
       "label": "unvested_rsus",
-      "source": "0001652044-26-000071 us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsNonvestedNumber at 2026-06-30",
+      "source": "0001652044-26-000071 us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsNonvestedNumber at 2026-06-30 [reconciliation: from-notes]",
       "value": 294000000.0
     }
   },

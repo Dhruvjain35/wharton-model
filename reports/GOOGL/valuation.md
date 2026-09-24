@@ -21,7 +21,7 @@ Valuation date 2026-06-30 (latest 10-Q balance sheet) · first forecast year cou
 - YTD revenue growth +23.1%; operating margin YTD 35.0%, TTM 33.1%.
 - Capex intensity YTD 35.1%, TTM 29.7%; depreciation intensity YTD 5.9%.
 - Cash FCF (CFO − capex) YTD $4.3bn vs $24.3bn a year earlier.
-- Gains on equity securities are 77.8% of YTD net income.
+- Pretax gains on equity securities are 62.9% of YTD pretax income.
 
 ## Assumptions
 
@@ -57,10 +57,10 @@ Cost of equity 9.17% = 4.44% + 1.05 × 4.50%; after-tax cost of debt 3.98%; pref
 | Item | Amount | Source |
 |---|---:|---|
 | Operating EV (base) | $2,240.4bn | model |
-| + Cash and marketable securities (less operating cash $0) | $242.5bn | 0001652044-26-000071 us-gaap:CashAndCashEquivalentsAtCarryingValue at 2026-06-30; 0001652044-26-000071 us-gaap:MarketableSecuritiesCurrent at 2026-06-30 |
-| + Non-marketable securities (carrying value) | $131.5bn | 0001652044-26-000071 us-gaap:OtherLongTermInvestments at 2026-06-30 |
+| + Cash and marketable securities (less operating cash $0) | $242.5bn | 0001652044-26-000071 us-gaap:CashAndCashEquivalentsAtCarryingValue at 2026-06-30 [reconciliation: matched]; 0001652044-26-000071 us-gaap:MarketableSecuritiesCurrent at 2026-06-30 [reconciliation: matched] |
+| + Non-marketable securities (carrying value) | $131.5bn | 0001652044-26-000071 us-gaap:OtherLongTermInvestments at 2026-06-30 [reconciliation: matched] |
 | − Debt incl. finance leases | $102.8bn | notes, current portion, finance leases, commercial paper |
-| − Mandatory convertible preferred (liquidation preference) | $19.2bn | 10-Q quotes |
+| − Mandatory convertible preferred (liquidation preference) | $19.3bn | 10-Q quotes |
 | = Equity value | $2,492.3bn | |
 | ÷ Diluted shares | 12,524m | 12,230m outstanding + 294m unvested RSUs |
 
@@ -73,6 +73,7 @@ SBC stays inside operating margin and is not added back; existing RSUs are count
 | base | $2,240.4bn | $2,492.3bn | $199.00 | 86% |
 | adverse | $1,411.6bn | $1,663.6bn | $132.83 | 92% |
 | favorable | $3,070.7bn | $3,322.6bn | $265.30 | 83% |
+| flat_ebitda | $1,878.3bn | $2,130.2bn | $170.09 | 87% |
 
 | Price | Date | Market cap (all classes) |
 |---|---|---:|
@@ -82,8 +83,19 @@ SBC stays inside operating margin and is not added back; existing RSUs are count
 - **base**: proposed assumptions
 - **adverse**: Joint stress (PRD B5): growth normalizes faster while capex intensity stays higher for longer, and the new capital earns less. The pieces move together; they are not independent shocks.
 - **favorable**: Growth holds up, the capex wave normalizes quickly, and margins expand as revenue from the new capacity arrives. Assumes the investment earns high returns.
+- **flat_ebitda**: Base case, except EBITDA margin (operating margin + depreciation) is held at its FY2026 level of 39.5%, so operating margin falls as depreciation from the capex wave rises. Tests whether the base case quietly assumes margin expansion (it raises implied EBITDA margin from 39.5% to 44.5%).
 
-Flags: 83% of operating EV is terminal value: the result mostly reflects terminal assumptions; 86% of operating EV is terminal value: the result mostly reflects terminal assumptions; 92% of operating EV is terminal value: the result mostly reflects terminal assumptions
+Flags:
+- **base**: Revenue growth drops from 8.0% in year 5 to 3.0% in perpetuity: consider more explicit years so the business reaches maturity first
+- **base**: Implied EBITDA margin rises from 39.5% to 44.5% because depreciation grows while operating margin is held: is that expansion intended?
+- **base**: 86% of operating EV is terminal value: the result mostly reflects terminal assumptions
+- **adverse**: Implied EBITDA margin rises from 37.5% to 40.5% because depreciation grows while operating margin is held: is that expansion intended?
+- **adverse**: 92% of operating EV is terminal value: the result mostly reflects terminal assumptions
+- **favorable**: Revenue growth drops from 10.0% in year 5 to 3.0% in perpetuity: consider more explicit years so the business reaches maturity first
+- **favorable**: Implied EBITDA margin rises from 41.5% to 47.5% because depreciation grows while operating margin is held: is that expansion intended?
+- **favorable**: 83% of operating EV is terminal value: the result mostly reflects terminal assumptions
+- **flat_ebitda**: Revenue growth drops from 8.0% in year 5 to 3.0% in perpetuity: consider more explicit years so the business reaches maturity first
+- **flat_ebitda**: 87% of operating EV is terminal value: the result mostly reflects terminal assumptions
 
 ## Reverse DCF — assumptions consistent with price under this model
 
@@ -100,7 +112,27 @@ One unknown at a time; every other assumption held at its base value. Bracketed 
 | $337.83 (2026-09-23) | wacc | 6.55% (unique) | 4.0% … 20.0% | yes |
 | $337.83 (2026-09-23) | terminal_growth | no solution in bounds (none) | -3.0% … 4.5% | yes |
 
-Capex break-even at $337.83: no capex multiplier in [0.2x, 3.0x] reproduces the price with growth and margins held fixed; the gap is about growth, margins or the discount rate, not capex alone.
+Capex break-even at $337.83: no capex multiplier in [0.2x, 3.0x] reproduces the price with growth and margins held fixed. Read this with the model's structure in mind: capex only enters the five explicit years, while terminal reinvestment is set by growth / ROIC, and the terminal value is most of EV.
+
+## Relative valuation cross-check (not averaged with the DCF)
+
+| Company | Window | Price date | Market cap (all classes) | P/E | EV/EBIT | FCF yield |
+|---|---|---|---:|---:|---:|---:|
+| GOOGL | TTM to 2026-06-30 | 2026-09-23 | $4,115.9bn | 16.9x | 27.1x | 1.29% |
+| MSFT | FY2026 | 2026-09-23 | $3,717.2bn | 27.8x | 24.1x | 1.80% |
+| META | TTM to 2026-06-30 | 2026-09-23 | $1,895.6bn | 27.8x | — | 2.16% |
+
+- GOOGL: 'Class A Common Stock' priced at its own trading symbol GOOGL (cover page); 'Class C share repurchases' priced at its own trading symbol GOOG (cover page); 'Class B Common Stock' priced at GOOGL (no trading symbol on the cover page; config mapping)
+- MSFT: 'Common stock' priced at MSFT (no trading symbol on the cover page; config mapping)
+- META: 'Common Class A' priced at META (no trading symbol on the cover page; config mapping); 'Common Class B' priced at META (no trading symbol on the cover page; config mapping); EV not computed: debt not reported at the balance-sheet date; EV/EBIT: input missing
+- P/E uses all-class market cap / trailing net income; GOOGL's trailing net income includes $149.0bn of pretax gains on equity securities, so EV/EBIT is the cleaner comparison.
+- Exit-multiple check: the base-case perpetuity terminal value equals 11.7x year-N+1 EBIT. Compare with the trailing EV/EBIT multiples above: a perpetuity value far below what peers trade at today is one reason the model value sits below the price.
+
+## Preferred claim
+
+- Deducted at liquidation preference ($19.3bn): $199.00 per share
+- Deducted at market value at 2026-06-30 ($19.5bn): $198.99 per share
+- The preferred converts into Class A/C shares by May 15, 2029 at a rate that depends on the share price; a conversion-value treatment would need the conversion-rate schedule from the filing.
 
 ## Sensitivity
 

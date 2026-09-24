@@ -93,6 +93,7 @@ adjustments:
       source: 10-K FY2025, MD&A
       snapshot_id: 938c25cc7e2ea066
       quote: net gains on equity securities of $24.1 billion, primarily related to unrealized gains on our non-marketable equity securities
+      fact: equity_securities_gain
     author: Claude (AI-proposed)
     status: proposed
 
@@ -220,6 +221,16 @@ observations:
       Cash taxes paid fell from 27.4bn (FY2024) to 21.5bn (FY2025).
     snapshot_id: 938c25cc7e2ea066
     quote: the effects of which are included in operating cash flows for the year ended December 31, 2025
+  - id: GOOGL-FY2023-TAX-RULES
+    category: unusual-tax
+    fiscal_labels: [FY2023]
+    note: >-
+      FY2023's effective tax rate (13.9%, against 15.9% in FY2022 and 16.4% in FY2024) includes a
+      cumulative one-time adjustment for prior periods from two IRS rule changes, mainly on foreign
+      tax credits. The filing does not quantify it, so no numeric adjustment is proposed; FY2023 net
+      income and EPS growth are flattered by an unknown amount.
+    snapshot_id: 3a539205c6b66cd8
+    quote: A cumulative one-time adjustment applicable to the prior period for these tax rule changes was recorded in 2023.
   - id: GOOGL-FY2025-WAYMO-SBC
     category: stock-compensation
     fiscal_labels: [FY2025]

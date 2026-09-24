@@ -125,3 +125,21 @@ def test_revenue_cagr_undefined_for_negative_start():
     ds = mk({"revenue": {2023: -100.0, 2024: 110.0, 2025: 121.0}})
     compute(ds)
     assert ds.fact("revenue_cagr", "FY2025").value is None
+
+
+def test_roic_on_average_invested_capital_with_labelled_definition():
+    ds = mk({"operating_income": {2025: 129.0}, "income_tax": {2025: 26.656}, "pretax_income": {2025: 158.826},
+             "equity": {2024: 325.084, 2025: 415.265}, "debt_lt_noncurrent": {2024: 10.883, 2025: 46.547},
+             "debt_lt_current": {2024: 0.999, 2025: 1.996}, "finance_lease_liability": {2024: 1.677, 2025: 2.5},
+             "commercial_paper": {2024: 2.3, 2025: 0.0}, "cash": {2024: 23.466, 2025: 30.708},
+             "st_investments": {2024: 72.191, 2025: 96.135}, "other_lt_investments": {2024: 37.982, 2025: 68.687}},
+            years=(2024, 2025))
+    compute(ds)
+    ic = lambda e, d, c, s, o: e + d - c - s - o
+    ic24 = ic(325.084, 10.883 + 0.999 + 1.677 + 2.3, 23.466, 72.191, 37.982)
+    ic25 = ic(415.265, 46.547 + 1.996 + 2.5 + 0.0, 30.708, 96.135, 68.687)
+    nopat = 129.0 * (1 - 26.656 / 158.826)
+    f = ds.fact("roic", "FY2025")
+    assert f.value == pytest.approx(nopat / ((ic24 + ic25) / 2))
+    assert any("definition" in n for n in f.notes)
+    assert ds.fact("roic", "FY2024").value is None  # no FY2023 balance sheet in the window

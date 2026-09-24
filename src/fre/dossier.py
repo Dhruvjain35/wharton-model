@@ -62,11 +62,12 @@ ROWS = {
     "cash": [("cfo", "Operating cash flow", money), ("cash_conversion", "CFO / net income", times),
              ("capex", "Capex (cash)", money), ("fcf", "Cash FCF (CFO - capex)", money),
              ("fcf_margin", "FCF margin", pct), ("fcf_after_sbc", "FCF after SBC", money)],
-    "investment": [("capex_intensity", "Capex / revenue", pct), ("dna", "Depreciation (cash flow)", money),
+    "investment": [("capex_intensity", "Capex / revenue", pct), ("dna", "Depreciation (as tagged; see definitions)", money),
                    ("capex_to_depreciation", "Capex / depreciation", times)],
     "quality": [("sbc", "Stock-based compensation", money), ("sbc_intensity", "SBC / revenue", pct),
                 ("nonoperating_share_of_pretax", "Non-operating income / pretax", pct),
-                ("effective_tax_rate", "Effective tax rate", pct), ("buybacks", "Buybacks", money),
+                ("effective_tax_rate", "Effective tax rate", pct),
+                ("roic", "ROIC (proposed definition)", pct), ("buybacks", "Buybacks", money),
                 ("dividends", "Dividends", money), ("payout_to_fcf", "Buybacks + dividends / FCF", pct),
                 ("total_debt", "Debt incl. finance leases", money), ("liquid_investments", "Cash + marketable securities", money),
                 ("net_debt", "Net debt (negative = net cash)", money),
@@ -77,15 +78,37 @@ STATUS_MARK = {FactStatus.REPORTED: "", FactStatus.DERIVED: "", FactStatus.ANALY
                FactStatus.MISSING: "", FactStatus.CONFLICTING: "‼"}
 
 
-def _table(ds: Dataset, rows, labels=None) -> str:
+UNIT_TEXT = {money: "USD", pct: "%", times: "x", per_share: "USD/share", shares: "shares"}
+
+
+def _table(ds: Dataset, rows, labels=None, lines: dict | None = None) -> str:
+    """Values with period ends, units, and each row's definition or source (PRD section 9)."""
     labels = labels or ds.labels
-    out = ["| Metric | " + " | ".join(labels) + " |", "|---|" + "---:|" * len(labels)]
+    lines = lines or {}
+    ends = []
+    for lab in labels:
+        f = ds.facts.get(f"revenue@{lab}")
+        ends.append(f"{lab} ({f.period_end:%b %d, %Y})" if f else lab)
+    out = ["| Metric | Unit | " + " | ".join(ends) + " | Definition / source |", "|---|---|" + "---:|" * len(labels) + "---|"]
     for metric, name, fmt in rows:
-        cells = []
+        cells, source = [], ""
         for lab in labels:
             f = ds.facts.get(f"{metric}@{lab}")
-            cells.append("—" if f is None else fmt(f.value) + STATUS_MARK.get(f.status, ""))
-        out.append(f"| {name} | " + " | ".join(cells) + " |")
+            if f is None:
+                cells.append("—")
+                continue
+            if f.value is None and f.status == FactStatus.MISSING and f.formula:
+                cells.append("n/a")  # suppressed: a formula exists but an input or denominator does not allow it
+            else:
+                cells.append(fmt(f.value) + STATUS_MARK.get(f.status, ""))
+        last = next((ds.facts.get(f"{metric}@{lab}") for lab in reversed(labels) if ds.facts.get(f"{metric}@{lab}")), None)
+        if last is not None and last.formula and last.status.value in ("derived", "missing"):
+            source = f"`{last.formula}`"
+        elif last is not None and last.sources:
+            line = lines.get(last.key)
+            source = f"{last.sources[0].locator}" + (f" · '{line}'" if line else "")
+        unit = UNIT_TEXT.get(fmt, "%")
+        out.append(f"| {name} | {unit} | " + " | ".join(cells) + f" | {source} |")
     return "\n".join(out)
 
 
@@ -102,7 +125,7 @@ def _growth_sentences(ds: Dataset) -> list[str]:
     cagr = _v(ds, "revenue_cagr", b)
     if cagr is not None:
         s.append(f"Revenue went from {money(_v(ds, 'revenue', a))} in {a} to {money(_v(ds, 'revenue', b))} in {b}, "
-                 f"a {pct(cagr)} compound annual rate over {len(ds.labels) - 1} years.")
+                 f"a compound annual rate of {pct(cagr)} over {len(ds.labels) - 1} years.")
     om_a, om_b = _v(ds, "operating_margin", a), _v(ds, "operating_margin", b)
     if om_a is not None and om_b is not None:
         direction = "expanded" if om_b > om_a else "contracted" if om_b < om_a else "was unchanged"
@@ -230,6 +253,7 @@ def definitions(ds) -> list[str]:
 
 def markdown(run: Run, data: dict, peers_md: str = "") -> str:
     ds = run.reported
+    lines = {r.fact: r.line for r in run.reconciliation if r.line}
     c = ds.company
     recon_counts: dict[str, int] = {}
     for r in run.reconciliation:
@@ -261,14 +285,14 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
         "## 1. Is the business growing, and is profitability improving?",
         "",
         *_growth_sentences(ds), "",
-        _table(ds, ROWS["growth"]),
+        _table(ds, ROWS["growth"], lines=lines),
         "",
         "## 2. Are EPS gains coming from the business, the share count, or unusual items?",
         "",
         *[f"- {s}" for s in _eps_sentences(run)],
         *[f"- {s}" for s in _what_if_sentences(run)],
         "",
-        _table(ds, ROWS["eps"]),
+        _table(ds, ROWS["eps"], lines=lines),
         "",
         "EPS bridge identity: EPS factor ≈ net-income factor / diluted-share factor (approximation: the "
         "numerator and share basis are not reconciled share class by share class).",
@@ -276,15 +300,15 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
         "## 3. How much accounting profit becomes cash?",
         "",
         *_cash_sentences(ds), "",
-        _table(ds, ROWS["cash"]),
+        _table(ds, ROWS["cash"], lines=lines),
         "",
         "## 4. What investment does growth require?",
         "",
-        _table(ds, ROWS["investment"]),
+        _table(ds, ROWS["investment"], lines=lines),
         "",
         "## 5. Could debt, stock compensation, or accounting choices mislead?",
         "",
-        _table(ds, ROWS["quality"]),
+        _table(ds, ROWS["quality"], lines=lines),
         "",
         "Debt policy: notes at carrying value + finance leases + commercial paper, every year. Operating leases "
         "are shown but excluded. SBC stays an expense: FCF after SBC is shown beside cash FCF.",
@@ -302,6 +326,7 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
     L += _latest_section(run)
     if peers_md:
         L += ["## 6. How does it compare with comparable businesses?", "", peers_md, ""]
+    L += _thesis_section(run.ticker)
     L += ["## Review queue", ""]
     for i in blocks + warns:
         L.append(f"- **{i.severity}** `{i.kind}` {i.message}")
@@ -309,7 +334,8 @@ def markdown(run: Run, data: dict, peers_md: str = "") -> str:
         L.append("- Nothing open.")
     L += ["", "## Definitions", "", "| Metric | Formula | Years |", "|---|---|---|", *definitions(ds)]
     L += ["", "Reported metrics map to XBRL tags: " + "; ".join(f"{m.id} = {', '.join(m.tags)}" for m in METRICS.values()), "",
-          "Legend: † analyst-adjusted, ‼ conflicting, — missing or suppressed (see facts.csv notes for the reason).", ""]
+          "Legend: † analyst-adjusted, ‼ conflicting (withheld), — missing (not reported), n/a suppressed (formula exists but "
+          "an input or denominator does not allow it; the reason is in tables/facts.csv and review.html).", ""]
     return "\n".join(L)
 
 
@@ -334,14 +360,37 @@ def _latest_section(run: Run) -> list[str]:
     L = [f"## Latest reported period (10-Q through {lab['cur'][3:]})", "",
          "Year-to-date values reconciled to the 10-Q statements (" + ", ".join(f"{v} {k}" for k, v in sorted(counts.items()))
          + "). TTM = last fiscal year + YTD - prior-year YTD, built only from reconciled inputs.", "",
-         "| Metric | YTD prior year | YTD current | Change | TTM |", "|---|---:|---:|---:|---:|"]
+         "| Metric | YTD prior year | YTD current | Change | Latest quarter | TTM |", "|---|---:|---:|---:|---:|---:|"]
     for m, name in LATEST_ROWS:
         a, b, t = ds.value(m, lab["prior"]), ds.value(m, lab["cur"]), ds.value(m, lab["ttm"])
+        q = ds.facts.get(f"{m}@{lab.get('q')}")
+        qtxt = "—" if q is None else money(q.value) + ("*" if q.status == FactStatus.DERIVED else "")
         ch = pct(b / a - 1, True) if a and b is not None and a > 0 and b >= 0 else "—"
-        L.append(f"| {name} | {money(a)} | {money(b)} | {ch} | {money(t)} |")
+        L.append(f"| {name} | {money(a)} | {money(b)} | {ch} | {qtxt} | {money(t)} |")
+    L += ["", "\\* latest quarter derived as YTD minus the prior YTD (cash flow statements report year-to-date only)."]
     L += ["", f"Balance sheet at {lab['bs'][2:]}:", "", "| Item | Amount |", "|---|---:|"]
     L += [f"| {n} | {money(ds.value(m, lab['bs']))} |" for m, n in LATEST_BALANCE]
     L += [f"| Common shares outstanding | {shares(ds.value('shares_outstanding', lab['bs']))} |", ""]
+    return L
+
+
+def _thesis_section(ticker: str) -> list[str]:
+    """PRD section 3 Q8: what would change the team's view. Owned by the team; rendered as written."""
+    import yaml
+
+    from .pipeline import ROOT
+    p = ROOT / "reviews" / ticker / "thesis.yaml"
+    if not p.exists():
+        return []
+    t = yaml.safe_load(p.read_text()) or {}
+    L = ["## 7. Thesis and what would change it (team-owned)", "",
+         f"- Claim: {t.get('claim') or '**not written yet**'}",
+         f"- Direction: {t.get('direction') or '**not set**'} · owner: {t.get('owner') or '**none**'}"]
+    for key, name in (("counterevidence", "Counterevidence"), ("invalidation", "Would change our view if"),
+                      ("decision_history", "Decision history")):
+        vals = t.get(key) or []
+        L.append(f"- {name}: " + ("; ".join(str(v) for v in vals) if vals else "**empty**"))
+    L += ["- Research questions: " + " / ".join(t.get("research_questions") or []), ""]
     return L
 
 

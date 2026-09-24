@@ -22,3 +22,30 @@ META:
   role: peer
   price_symbols: [["", "META"]]   # Class B is unlisted and converts 1:1 into Class A
   corporate_actions: []
+
+# Comparability (PRD A5). Every quote is checked verbatim against the snapshotted 10-K by
+# `fre verify-ledger`. Notes restate the quotes; anything beyond them is marked for the team.
+comparability:
+  GOOGL:
+    note: >-
+      Three segments: Google Services, Google Cloud and Other Bets. Services earns primarily
+      advertising revenue across Search, YouTube and partner properties.
+    quotes:
+      - {snapshot_id: 938c25cc7e2ea066, quote: "We report our segment results as Google Services, Google Cloud, and Other Bets."}
+      - {snapshot_id: 938c25cc7e2ea066, quote: "generates revenues primarily by delivering both performance and brand advertising that appears on Google Search & other properties, YouTube, and Google Network partners' properties"}
+  META:
+    note: >-
+      Two segments, Family of Apps and Reality Labs, and substantially all revenue from advertising:
+      the closest business-model match to Google Services. It has no public cloud business, so it
+      says nothing about Google Cloud economics.
+    quotes:
+      - {snapshot_id: e211fa3b1ceb28ad, quote: "We report our financial results for our two reportable segments: Family of Apps (FoA) and Reality Labs (RL)."}
+      - {snapshot_id: e211fa3b1ceb28ad, quote: "We generate substantially all of our revenue from advertising."}
+  MSFT:
+    note: >-
+      Three segments: Productivity and Business Processes, Intelligent Cloud, and More Personal
+      Computing. Team to confirm: it is a comparable for Google Cloud and enterprise software more
+      than for advertising. Its fiscal year ends June 30.
+    quotes:
+      - {snapshot_id: 96d03620b06dc4d1, quote: "Our Intelligent Cloud segment consists of our public, private, and hybrid server products and cloud services that power modern business and developers."}
+      - {snapshot_id: 96d03620b06dc4d1, quote: "Our Productivity and Business Processes segment consists of products and services in our portfolio of productivity, communication, and information services, spanning a variety of devices and platforms."}

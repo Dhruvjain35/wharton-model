@@ -61,7 +61,7 @@ def default_years(ticker: str, n: int = 5, as_of=None) -> list[int]:
 
 
 def build(ticker: str, years: list[int] | None = None, *, check_notes: bool = True,
-          snapshot_ids: dict[str, str] | None = None, as_of=None) -> Run:
+          snapshot_ids: dict[str, str] | None = None, as_of=None, adjustments_on: bool = True) -> Run:
     years = years or default_years(ticker, as_of=as_of)
     ds = load(ticker, years, snapshot_ids, as_of=as_of)
     attest.apply_zero_attestations(ds, attest.load_rules(ticker))
@@ -73,8 +73,8 @@ def build(ticker: str, years: list[int] | None = None, *, check_notes: bool = Tr
     compute(ds)
     adjustments, observations = ledger.load(ds, ticker)
     problems = verify_ledger(ds, ticker)
-    adjusted = compute(ledger.apply(ds, adjustments))
-    what_if = compute(ledger.apply(ds, adjustments, statuses=("approved", "proposed")))
+    adjusted = compute(ledger.apply(ds, adjustments, enabled=adjustments_on))
+    what_if = compute(ledger.apply(ds, adjustments, enabled=adjustments_on, statuses=("approved", "proposed")))
     from . import snapshot
     from .latest import build_latest
     latest, latest_recon, latest_labels = build_latest(
@@ -91,7 +91,7 @@ def build(ticker: str, years: list[int] | None = None, *, check_notes: bool = Tr
                adjustments=adjustments, observations=observations, ledger_problems=problems,
                eps_bridge=bridge(ds), eps_bridge_what_if=bridge(what_if),
                config={"ticker": ticker, "fiscal_years": years, "check_notes": check_notes,
-                       "as_of": str(as_of) if as_of else None,
+                       "as_of": str(as_of) if as_of else None, "adjustments_on": adjustments_on,
                        "vintage": f"point-in-time as of {as_of}" if as_of else "current (latest restated filings)",
                        "company_config": companies()[ticker], "engine_version": ENGINE_VERSION})
 

@@ -150,7 +150,7 @@ tiles.push(["Revenue "+last,bn(val("revenue",last)),"growth "+F.signed(val("reve
 if(D.valuation){const e=D.valuation.evidence,r=e.ratios,row=e.rows;
  tiles.push(["Capex, YTD "+e.period_end,bn(row.capex.ytd),"vs "+bn(row.capex.ytd_prior)+" a year earlier"]);
  tiles.push(["Cash FCF, YTD "+e.period_end,bn(r.cash_fcf_ytd),"vs "+bn(r.cash_fcf_ytd_prior)+" a year earlier"]);
- tiles.push(["Equity-securities gains / YTD net income",F.pct(r.equity_gains_share_of_net_income_ytd),bn(row.equity_securities_gain.ytd)+" of "+bn(row.net_income.ytd)]);}
+ tiles.push(["Equity-securities gains / YTD pretax income",F.pct(r.equity_gains_share_of_pretax_ytd),bn(row.equity_securities_gain.ytd)+" pretax, mostly unrealized"]);}
 document.getElementById("tiles").innerHTML=tiles.map(([l,v,d])=>`<div class="tile"><div class="l">${esc(l)}</div><div class="v">${esc(v)}</div><div class="d">${esc(d)}</div></div>`).join("");
 
 function layout(extra){return Object.assign({margin:{l:48,r:12,t:8,b:32},paper_bgcolor:"rgba(0,0,0,0)",plot_bgcolor:"rgba(0,0,0,0)",

@@ -49,3 +49,24 @@ def test_definitions_list_every_formula_a_metric_used_with_its_years():
 
 def test_money_rounds_half_up():
     assert money(19.25e9) == "$19.3bn"
+
+
+def test_tables_show_period_ends_units_and_a_source_or_formula_for_every_row():
+    from datetime import date
+    from fre.dossier import _table, money, pct
+    from fre.models import Company, Fact, FactStatus, Source
+    from fre.normalize import Dataset
+    ds = Dataset(company=Company(cik="1", legal_name="T", tickers=[], fiscal_year_end="1231"), fiscal_years=[2025],
+                 snapshot_ids={})
+    src = Source(accession="A-1", form="10-K", filed=date(2026, 2, 5), url="u", locator="us-gaap:Revenues",
+                 snapshot_id="s", retrieved_at="t")
+    ds.add(Fact(company="1", metric="revenue", value=4e11, unit="USD", period_start=date(2025, 1, 1),
+                period_end=date(2025, 12, 31), fiscal_label="FY2025", status=FactStatus.REPORTED, sources=[src]))
+    ds.add(Fact(company="1", metric="revenue_growth", value=None, unit="pure", period_start=None,
+                period_end=date(2025, 12, 31), fiscal_label="FY2025", status=FactStatus.MISSING,
+                formula="revenue / prior revenue - 1", notes=["Suppressed: FY2024 is not in the loaded window"]))
+    t = _table(ds, [("revenue", "Revenue", money), ("revenue_growth", "Revenue growth", pct)],
+               lines={"revenue@FY2025": "Revenues"})
+    assert "FY2025 (Dec 31, 2025)" in t
+    assert "USD" in t and "us-gaap:Revenues" in t and "'Revenues'" in t
+    assert "n/a" in t and "revenue / prior revenue - 1" in t   # suppressed shows n/a, not a bare dash

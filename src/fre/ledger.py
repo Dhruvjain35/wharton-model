@@ -28,6 +28,11 @@ class LedgerError(ValueError):
     pass
 
 
+# PRD A4 review categories (plus two observation-only ones)
+CATEGORIES = {"recurring-called-one-time", "restructuring", "legal", "investment-gains", "unusual-tax",
+              "depreciation-assumptions", "working-capital-and-tax-timing", "scope-change", "stock-compensation"}
+
+
 _OPS = {ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul, ast.Div: operator.truediv,
         ast.USub: operator.neg, ast.UAdd: operator.pos}
 
@@ -75,6 +80,8 @@ def build(ds: Dataset, entries: list[dict]) -> list[Adjustment]:
             continue
         names = {k.split("@")[0]: f.value for k, f in ds.facts.items()
                  if k.endswith(f"@{label}") and f.value is not None}
+        if e["category"] not in CATEGORIES:
+            raise LedgerError(f"{e['id']}: category '{e['category']}' is not one of {sorted(CATEGORIES)}")
         if e["metric"] not in names:
             raise LedgerError(f"{e['id']}: target {e['metric']}@{label} is missing")
         if e["status"] == "approved":

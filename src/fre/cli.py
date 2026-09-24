@@ -21,9 +21,15 @@ def _cmd_dossier(a):
 
     from datetime import date
     as_of = date.fromisoformat(a.as_of) if a.as_of else None
-    run = build(a.ticker, a.years, check_notes=not a.no_notes, as_of=as_of)
+    run = build(a.ticker, a.years, check_notes=not a.no_notes, as_of=as_of, adjustments_on=not a.no_adjustments)
     peers = [build(p, None, check_notes=not a.no_notes, as_of=as_of) for p in a.peers]
-    out = dossier.write(run, Path(a.out), compare.markdown(run, peers))
+    mults = None
+    if a.price_date and peers:
+        from .pipeline import companies
+        from .valuation.multiples import for_run
+        pd = date.fromisoformat(a.price_date)
+        mults = {r.ticker: for_run(r.ticker, r, pd, companies()[r.ticker]["price_symbols"]) for r in [run, *peers]}
+    out = dossier.write(run, Path(a.out), compare.markdown(run, peers, mults))
     for p in peers:
         dossier.write(p, Path(a.out))
     print(f"wrote {out}")
@@ -40,7 +46,8 @@ def _cmd_verify_run(a):
     from datetime import date
     as_of = date.fromisoformat(cfg["as_of"]) if cfg.get("as_of") else None
     run = build(cfg["ticker"], cfg["fiscal_years"], check_notes=cfg["check_notes"],
-                snapshot_ids=saved["inputs"]["snapshot_ids"], as_of=as_of)
+                snapshot_ids=saved["inputs"]["snapshot_ids"], as_of=as_of,
+                adjustments_on=cfg.get("adjustments_on", True))
     again = payload(run)["outputs_digest"]
     ok = again == saved["outputs_digest"]
     print(f"saved   {saved['outputs_digest']}\nrebuilt {again}\n{'IDENTICAL' if ok else 'DIFFERENT'}")
@@ -52,8 +59,11 @@ def _cmd_verify_ledger(a):
     from .pipeline import load
     from .verify import verify_ledger
 
-    problems = verify_ledger(load(a.ticker, default_years(a.ticker)), a.ticker)
-    print("\n".join(problems) or "all ledger quotes verified against filing text")
+    from .pipeline import config
+    from .verify import verify_comparability
+
+    problems = verify_ledger(load(a.ticker, default_years(a.ticker)), a.ticker) + verify_comparability(config())
+    print("\n".join(problems) or "all ledger and comparability quotes verified against filing text")
     return 1 if problems else 0
 
 
@@ -94,6 +104,18 @@ def _cmd_verify_value(a):
     return 0 if ok else 1
 
 
+def _cmd_readiness(a):
+    from .engine import build
+    from .readiness import for_ticker
+
+    items = for_ticker(ROOT, a.ticker, build(a.ticker))
+    for i in items:
+        print(f"[{i['status']:4s}] {i['item']}")
+    todo = sum(i["status"] == "TODO" for i in items)
+    print(f"\n{len(items) - todo}/{len(items)} done" + ("" if todo else ": ready to defend"))
+    return 1 if todo else 0
+
+
 def _cmd_review(a):
     from .engine import build
 
@@ -119,6 +141,8 @@ def main(argv=None) -> int:
     s.add_argument("--no-notes", action="store_true", help="skip note-table verification (faster, offline-only if cached)")
     s.add_argument("--strict", action="store_true", help="exit 1 when blocking review items remain")
     s.add_argument("--as-of", help="point-in-time run: ignore filings made after this date (YYYY-MM-DD)")
+    s.add_argument("--price-date", help="add market multiples priced at this date (YYYY-MM-DD)")
+    s.add_argument("--no-adjustments", action="store_true", help="switch every ledger adjustment off (PRD A4)")
     s.set_defaults(fn=_cmd_dossier)
 
     s = sub.add_parser("verify-run", help="rebuild a saved run from its pinned inputs and compare digests")
@@ -142,6 +166,10 @@ def main(argv=None) -> int:
     s.add_argument("ticker")
     s.add_argument("--out", default=str(ROOT / "out"))
     s.set_defaults(fn=_cmd_screen)
+
+    s = sub.add_parser("readiness", help="list the human work left before the model supports a submission")
+    s.add_argument("ticker")
+    s.set_defaults(fn=_cmd_readiness)
 
     s = sub.add_parser("review", help="print the review queue")
     s.add_argument("ticker")

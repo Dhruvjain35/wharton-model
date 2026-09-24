@@ -11,7 +11,7 @@ from datetime import date, timedelta
 
 from .models import Fact, FactStatus
 from .normalize import Dataset, _filing_url
-from .quarterly import instant, ytd
+from .quarterly import instant, standalone_quarter, ytd
 from .reconcile import ReconRecord, reconcile
 
 FLOWS = ["revenue", "operating_income", "net_income", "equity_securities_gain", "pretax_income", "income_tax",
@@ -26,6 +26,15 @@ def _shift_year(d: date, years: int) -> date:
         return d.replace(year=d.year + years)
     except ValueError:  # 29 February
         return d.replace(year=d.year + years, day=28)
+
+
+def _quarter_start(end: date) -> date:
+    m = end.month - 2
+    y = end.year
+    if m <= 0:
+        m += 12
+        y -= 1
+    return date(y, m, 1)
 
 
 def latest_end(cf: dict, fy_start: date) -> date | None:
@@ -45,7 +54,8 @@ def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_note
     if end is None:
         return None, [], {}
     prior_start, prior_end = _shift_year(start, -1), _shift_year(end, -1)
-    labels = {"cur": f"YTD{end}", "prior": f"YTD{prior_end}", "ttm": f"TTM{end}", "bs": f"AT{end}"}
+    labels = {"cur": f"YTD{end}", "prior": f"YTD{prior_end}", "ttm": f"TTM{end}", "bs": f"AT{end}", "q": f"Q{end}"}
+    q_start = _quarter_start(end)
     recent = submissions["filings"]["recent"]
     docs = dict(zip(recent["accessionNumber"], recent["primaryDocument"]))
     cik = int(cf["cik"])
@@ -63,6 +73,8 @@ def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_note
         put(ytd(cf, m, prior_start, prior_end, annual.actions), labels["prior"])
     for m in BALANCE:
         put(instant(cf, m, end, annual.actions), labels["bs"])
+    for m in FLOWS:  # the latest standalone quarter: reported three-month value, or YTD - prior YTD (derived)
+        put(standalone_quarter(cf, m, q_start, end), labels["q"])
     from .filing_text import text_at
     recon = reconcile(ds, fetch=fetch, fetch_notes=fetch_notes, fetch_text=text_at if fetch_notes else None)
 
@@ -81,7 +93,7 @@ def build_latest(annual: Dataset, cf: dict, submissions: dict, fetch, fetch_note
         else:
             ds.add(Fact(**common, value=sum(sign * f.value for sign, f in parts), status=FactStatus.DERIVED))
 
-    for lab in (labels["cur"], labels["prior"], labels["ttm"]):  # cash FCF on each window
+    for lab in (labels["cur"], labels["prior"], labels["ttm"], labels["q"]):  # cash FCF on each window
         c, x = ds.facts[f"cfo@{lab}"], ds.facts[f"capex@{lab}"]
         v = None if c.value is None or x.value is None else c.value - x.value
         ds.add(Fact(company=annual.company.cik, metric="fcf", value=v, unit="USD", period_start=c.period_start,

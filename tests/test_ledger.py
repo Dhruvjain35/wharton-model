@@ -165,3 +165,15 @@ def test_rounded_billion_in_a_quote_can_evidence_a_precise_fact():
 def test_entries_for_years_outside_the_loaded_window_are_skipped_not_fatal():
     adjs = build(mk(), [entry(fiscal_label="FY2019")])
     assert adjs == []
+
+
+def test_comparability_quotes_must_be_verbatim():
+    from fre.verify import verify_comparability
+    cfgd = {"comparability": {"META": {"quotes": [{"snapshot_id": "S", "quote": "We generate substantially all of our revenue from advertising."}]}}}
+    assert verify_comparability(cfgd, lambda sid: "We generate substantially all of our revenue from advertising.") == []
+    assert verify_comparability(cfgd, lambda sid: "We generate most revenue from ads.")
+
+
+def test_category_must_be_a_prd_review_category():
+    with pytest.raises(LedgerError, match="category"):
+        build(mk(), [entry(category="made-up")])
