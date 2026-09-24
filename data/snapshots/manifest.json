@@ -14,6 +14,11 @@
     "retrieved_at": "2026-09-24T05:13:30+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204422000019/R9.htm"
   },
+  "215cc73d3cd475b6": {
+    "bytes": 59495,
+    "retrieved_at": "2026-09-24T05:16:23+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/R8.htm"
+  },
   "28f1932883235eb7": {
     "bytes": 112597,
     "retrieved_at": "2026-09-24T05:13:28+00:00",
@@ -33,6 +38,16 @@
     "bytes": 55728,
     "retrieved_at": "2026-09-24T05:13:27+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/FilingSummary.xml"
+  },
+  "37c9425a14933775": {
+    "bytes": 57358,
+    "retrieved_at": "2026-09-24T05:16:23+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/R8.htm"
+  },
+  "3a539205c6b66cd8": {
+    "bytes": 2410515,
+    "retrieved_at": "2026-09-24T05:17:45+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/goog-20231231.htm"
   },
   "3ff9a14798c60604": {
     "bytes": 54562,
@@ -74,6 +89,11 @@
     "retrieved_at": "2026-09-24T05:13:26+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204424000022/R3.htm"
   },
+  "938c25cc7e2ea066": {
+    "bytes": 2616611,
+    "retrieved_at": "2026-09-24T05:17:45+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm"
+  },
   "9624fe558574d3c3": {
     "bytes": 154521,
     "retrieved_at": "2026-09-24T05:10:27+00:00",
@@ -83,6 +103,16 @@
     "bytes": 3164517,
     "retrieved_at": "2026-09-24T05:10:27+00:00",
     "url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json"
+  },
+  "abc7fcae76c3e949": {
+    "bytes": 3038525,
+    "retrieved_at": "2026-09-24T05:19:58+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/goog-20221231.htm"
+  },
+  "ae6ef38ac707b2b9": {
+    "bytes": 59071,
+    "retrieved_at": "2026-09-24T05:16:24+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R8.htm"
   },
   "b781ceed3ccadc6b": {
     "bytes": 118452,
@@ -104,6 +134,11 @@
     "retrieved_at": "2026-09-24T05:13:25+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/FilingSummary.xml"
   },
+  "c14f556b914e5e9f": {
+    "bytes": 63294,
+    "retrieved_at": "2026-09-24T05:16:24+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204422000019/R8.htm"
+  },
   "c7a8e275633b3982": {
     "bytes": 63501,
     "retrieved_at": "2026-09-24T05:13:25+00:00",
@@ -118,6 +153,16 @@
     "bytes": 120646,
     "retrieved_at": "2026-09-24T05:13:25+00:00",
     "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204423000016/R3.htm"
+  },
+  "da8f7c08c1b5256f": {
+    "bytes": 2528456,
+    "retrieved_at": "2026-09-24T05:17:57+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/goog-20241231.htm"
+  },
+  "e22af93262dd0923": {
+    "bytes": 59787,
+    "retrieved_at": "2026-09-24T05:16:23+00:00",
+    "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000014/R8.htm"
   },
   "f8aae2965b20ad0d": {
     "bytes": 4881196,
