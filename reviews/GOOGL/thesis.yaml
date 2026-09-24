@@ -1,0 +1,29 @@
+# Thesis record (PRD section 7: claim, evidence, counterevidence, invalidation, decision history).
+#
+# The CLAIM is the team's to write. The engine supplies evidence as fact keys from the
+# latest run (open review.html and click any figure for its source). Research questions
+# below come from PRD section 6; they are questions, not conclusions.
+
+claim: null            # TEAM: one sentence, stated so it can be proven wrong
+direction: null        # TEAM: long / avoid / neutral, tied to the client case released on the 28th
+owner: null
+
+evidence_to_weigh:     # fact keys; values live in the run, never retyped here
+  capital_intensity: [capex_intensity@FY2025, capex_to_depreciation@FY2025, "valuation evidence: capex YTD 2026-06-30"]
+  cash_generation: [fcf@FY2021, fcf@FY2025, fcf_margin@FY2025, "valuation evidence: cash FCF YTD 2026-06-30"]
+  earnings_quality: [nonoperating_share_of_pretax@FY2025, equity_securities_gain@FY2025,
+                     "valuation evidence: equity-securities gains share of YTD net income", GOOGL-FY2025-EQGAIN]
+  growth: [revenue_growth@FY2025, revenue_cagr@FY2025, "valuation evidence: YTD revenue growth"]
+  capital_returns_and_funding: [buybacks@FY2025, payout_to_fcf@FY2025, "10-Q Q2 2026: equity offering, private placement,
+                                mandatory convertible preferred, 2026 note issuance"]
+  accounting_choices: [GOOGL-FY2023-USEFUL-LIFE, GOOGL-FY2023-RESTRUCTURING, GOOGL-FY2024-RESTRUCTURING, GOOGL-FY2025-LEGAL]
+
+research_questions:
+  - What revenue growth and operating margin combination is consistent with the price? (valuation grid, reverse DCF)
+  - What if capex intensity stays elevated longer than the base case? (adverse scenario, capex break-even)
+  - How much value depends on sustained excess returns? (terminal ROIC sensitivity)
+  - Which assumption matters most? (compare the reverse-DCF moves for growth, margin and WACC)
+
+counterevidence: []     # TEAM: what the other side would say, with fact keys
+invalidation: []        # TEAM: observable events that would change the view (e.g. a metric crossing a level)
+decision_history: []    # TEAM: dated entries; show one where evidence changed the view (PRD section 11)

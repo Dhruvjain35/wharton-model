@@ -1,0 +1,1797 @@
+{
+  "base_revenue": {
+    "label": "base revenue",
+    "source": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/goog-20251231.htm (us-gaap:Revenues)",
+    "value": 402836000000.0
+  },
+  "breakevens": {
+    "capex_multiplier_at_latest_price": {
+      "grid": 241,
+      "held_fixed": {},
+      "hi": 3.0,
+      "invalid_points": 0,
+      "label": "assumptions consistent with price under this model",
+      "lo": 0.2,
+      "monotonic": true,
+      "price": null,
+      "roots": [],
+      "status": "none",
+      "variable": "",
+      "xtol": 1e-10
+    }
+  },
+  "bridge_items": {
+    "cash": {
+      "label": "cash",
+      "source": "0001652044-26-000071 us-gaap:CashAndCashEquivalentsAtCarryingValue at 2026-06-30",
+      "value": 55911000000.0
+    },
+    "commercial_paper": {
+      "label": "commercial_paper",
+      "source": "0001652044-26-000071 us-gaap:CommercialPaper at 2026-06-30",
+      "value": 0.0
+    },
+    "debt_lt_current": {
+      "label": "debt_lt_current",
+      "source": "0001652044-26-000071 us-gaap:LongTermDebtCurrent at 2026-06-30",
+      "value": 1999000000.0
+    },
+    "debt_lt_noncurrent": {
+      "label": "debt_lt_noncurrent",
+      "source": "0001652044-26-000071 us-gaap:LongTermDebtNoncurrent at 2026-06-30",
+      "value": 98165000000.0
+    },
+    "finance_lease_liability": {
+      "label": "finance_lease_liability",
+      "source": "0001652044-26-000071 us-gaap:FinanceLeaseLiability at 2026-06-30",
+      "value": 2590000000.0
+    },
+    "other_lt_investments": {
+      "label": "other_lt_investments",
+      "source": "0001652044-26-000071 us-gaap:OtherLongTermInvestments at 2026-06-30",
+      "value": 131461000000.0
+    },
+    "preferred_claim": {
+      "label": "mandatory convertible preferred at liquidation preference",
+      "source": "issued an aggregate amount of 385 million Series A and Series B depositary shares / liquidation preference of $ 1,000 per share ($ 50 per depositary share)",
+      "value": 19250000000.0
+    },
+    "st_investments": {
+      "label": "st_investments",
+      "source": "0001652044-26-000071 us-gaap:MarketableSecuritiesCurrent at 2026-06-30",
+      "value": 186563000000.0
+    }
+  },
+  "config": {
+    "assumptions": {
+      "beta": {
+        "as_of": "2026-09-24",
+        "high": 1.3,
+        "low": 0.9,
+        "owner": "Claude (AI-proposed)",
+        "rationale": "TEAM INPUT REQUIRED. No automated estimate per PRD B4; attach a regression or bottom-up beta.",
+        "status": "proposed",
+        "units": "equity beta",
+        "value": 1.05
+      },
+      "capex_pct": {
+        "as_of": "2026-09-24",
+        "high": [
+          0.38,
+          0.36,
+          0.33,
+          0.28,
+          0.24
+        ],
+        "low": [
+          0.28,
+          0.22,
+          0.17,
+          0.14,
+          0.12
+        ],
+        "owner": "Claude (AI-proposed)",
+        "rationale": "FY2026 near the H1 2026 capex intensity, then easing. How long intensity stays elevated is the central question for this company; see the capex break-even and adverse scenario.",
+        "status": "proposed",
+        "units": "cash capex / revenue, FY2026-FY2030",
+        "value": [
+          0.33,
+          0.3,
+          0.25,
+          0.2,
+          0.17
+        ]
+      },
+      "dna_pct": {
+        "as_of": "2026-09-24",
+        "high": [
+          0.075,
+          0.11,
+          0.13,
+          0.14,
+          0.15
+        ],
+        "low": [
+          0.06,
+          0.075,
+          0.085,
+          0.095,
+          0.1
+        ],
+        "owner": "Claude (AI-proposed)",
+        "rationale": "Rises as recent capex is depreciated (servers over six years per the FY2023 10-K). A PP&E roll-forward schedule would tie this to the capex path mechanically; that is the next model step.",
+        "status": "proposed",
+        "units": "depreciation / revenue, FY2026-FY2030",
+        "value": [
+          0.065,
+          0.09,
+          0.11,
+          0.12,
+          0.125
+        ]
+      },
+      "equity_risk_premium": {
+        "as_of": "2026-09-24",
+        "high": 0.055,
+        "low": 0.04,
+        "owner": "Claude (AI-proposed)",
+        "rationale": "TEAM INPUT REQUIRED. Placeholder inside a commonly used range; no source attached. Replace with a cited figure (e.g. a published implied ERP) before relying on the value.",
+        "status": "proposed",
+        "units": "US equity risk premium",
+        "value": 0.045
+      },
+      "growth": {
+        "as_of": "2026-09-24",
+        "high": [
+          0.24,
+          0.2,
+          0.17,
+          0.14,
+          0.11
+        ],
+        "low": [
+          0.14,
+          0.09,
+          0.06,
+          0.05,
+          0.04
+        ],
+        "owner": "Claude (AI-proposed)",
+        "rationale": "FY2026 anchored below the H1 2026 year-over-year rate in the evidence table, then fading toward the terminal rate. The fade is a judgment, not a forecast from the filings.",
+        "status": "proposed",
+        "units": "revenue growth, FY2026-FY2030",
+        "value": [
+          0.2,
+          0.15,
+          0.12,
+          0.1,
+          0.08
+        ]
+      },
+      "operating_cash": {
+        "as_of": "2026-09-24",
+        "high": 20000000000.0,
+        "low": 0.0,
+        "owner": "Claude (AI-proposed)",
+        "rationale": "All cash and marketable securities treated as excess for now; the team should decide a reserve.",
+        "status": "proposed",
+        "units": "USD of cash treated as operationally necessary (not excess)",
+        "value": 0.0
+      },
+      "operating_margin": {
+        "as_of": "2026-09-24",
+        "high": [
+          0.36,
+          0.36,
+          0.36,
+          0.36,
+          0.36
+        ],
+        "low": [
+          0.3,
+          0.27,
+          0.26,
+          0.26,
+          0.26
+        ],
+        "owner": "Claude (AI-proposed)",
+        "rationale": "Near the TTM margin in the evidence table. Depreciation is rising fast as the capex wave is placed in service, which is why margins are not extended upward in the base case.",
+        "status": "proposed",
+        "units": "GAAP operating margin (SBC expensed), FY2026-FY2030",
+        "value": [
+          0.33,
+          0.32,
+          0.32,
+          0.32,
+          0.32
+        ]
+      },
+      "tax_rate": {
+        "as_of": "2026-09-24",
+        "high": 0.21,
+        "low": 0.14,
+        "owner": "Claude (AI-proposed)",
+        "rationale": "FY2021-FY2025 effective tax rates in the dossier; 21% is the US federal statutory ceiling.",
+        "status": "proposed",
+        "units": "operating cash tax rate on EBIT",
+        "value": 0.17
+      },
+      "terminal_growth": {
+        "as_of": "2026-09-24",
+        "high": 0.04,
+        "low": 0.02,
+        "owner": "Claude (AI-proposed)",
+        "rationale": "Below the 10-year Treasury yield used as the risk-free rate.",
+        "status": "proposed",
+        "units": "perpetual nominal growth from FY2031",
+        "value": 0.03
+      },
+      "terminal_margin": {
+        "as_of": "2026-09-24",
+        "high": 0.36,
+        "low": 0.26,
+        "owner": "Claude (AI-proposed)",
+        "rationale": "Equal to the FY2030 margin so there is no jump into the terminal value.",
+        "status": "proposed",
+        "units": "operating margin in the terminal year",
+        "value": 0.32
+      },
+      "terminal_roic": {
+        "as_of": "2026-09-24",
+        "high": 0.35,
+        "low": 0.12,
+        "owner": "Claude (AI-proposed)",
+        "rationale": "Sets terminal reinvestment = growth / ROIC. Well below Alphabet's recent returns because the incremental AI capital may earn less; still assumes a durable advantage over the cost of capital.",
+        "status": "proposed",
+        "units": "return on new invested capital in perpetuity",
+        "value": 0.2
+      }
+    },
+    "base_year": "FY2025",
+    "class_shares": {
+      "class_a": {
+        "priced_as": "GOOGL",
+        "shares": 5868000000.0
+      },
+      "class_b": {
+        "priced_as": "GOOGL",
+        "shares": 835000000.0
+      },
+      "class_c": {
+        "priced_as": "GOOG",
+        "shares": 5527000000.0
+      }
+    },
+    "company": "GOOGL",
+    "forecast_years": 5,
+    "headline_class": "GOOGL",
+    "listed_classes": [
+      "GOOGL",
+      "GOOG",
+      "GOOGM",
+      "GOOGN"
+    ],
+    "operating_nwc": {
+      "add": [
+        "us-gaap:AccountsReceivableNetCurrent",
+        "us-gaap:OtherAssetsCurrent"
+      ],
+      "add_back_financing": [
+        "debt_lt_current",
+        "finance_lease_liability_current"
+      ],
+      "subtract": [
+        "us-gaap:AccountsPayableCurrent",
+        "us-gaap:EmployeeRelatedLiabilitiesCurrent",
+        "us-gaap:AccruedLiabilitiesCurrent",
+        "goog:AccruedRevenueShare",
+        "us-gaap:ContractWithCustomerLiabilityCurrent"
+      ]
+    },
+    "preferred_listings": [
+      "GOOGM",
+      "GOOGN"
+    ],
+    "price_date": "2026-09-23",
+    "reverse_bounds": {
+      "growth": [
+        -0.1,
+        0.6
+      ],
+      "margin": [
+        0.0,
+        0.8
+      ],
+      "terminal_growth": [
+        -0.03,
+        0.045
+      ],
+      "wacc": [
+        0.04,
+        0.2
+      ]
+    },
+    "scenarios": {
+      "adverse": {
+        "capex_pct": [
+          0.36,
+          0.34,
+          0.3,
+          0.25,
+          0.21
+        ],
+        "growth": [
+          0.16,
+          0.1,
+          0.07,
+          0.06,
+          0.05
+        ],
+        "operating_margin": [
+          0.31,
+          0.29,
+          0.28,
+          0.28,
+          0.28
+        ],
+        "rationale": "Joint stress (PRD B5): growth normalizes faster while capex intensity stays higher for longer, and the new capital earns less. The pieces move together; they are not independent shocks.",
+        "terminal_margin": 0.28,
+        "terminal_roic": 0.14
+      },
+      "favorable": {
+        "capex_pct": [
+          0.3,
+          0.24,
+          0.19,
+          0.16,
+          0.14
+        ],
+        "growth": [
+          0.23,
+          0.19,
+          0.16,
+          0.13,
+          0.1
+        ],
+        "operating_margin": [
+          0.35,
+          0.35,
+          0.35,
+          0.35,
+          0.35
+        ],
+        "rationale": "Growth holds up, the capex wave normalizes quickly, and margins expand as revenue from the new capacity arrives. Assumes the investment earns high returns.",
+        "terminal_margin": 0.35,
+        "terminal_roic": 0.28
+      }
+    },
+    "sourced": {
+      "class_split": {
+        "figure": "12,230 (Class A 5,868 , Class B 835 , Class C 5,527 )",
+        "quote": "12,230 (Class A 5,868 , Class B 835 , Class C 5,527 ) shares issued and outstanding",
+        "snapshot_id": "1b4e671893d74a58",
+        "value": 12230
+      },
+      "preferred_depositary_shares": {
+        "figure": "385 million",
+        "quote": "issued an aggregate amount of 385 million Series A and Series B depositary shares",
+        "snapshot_id": "1b4e671893d74a58",
+        "value": 385000000.0
+      },
+      "preferred_dividend_rate": {
+        "figure": "6.25 %",
+        "quote": "Dividends are cumulative at an annual rate of 6.25 % on the liquidation preference of $ 1,000 per share",
+        "snapshot_id": "1b4e671893d74a58",
+        "value": 0.0625
+      },
+      "preferred_liquidation_per_depositary_share": {
+        "figure": "$ 50 per depositary share",
+        "quote": "liquidation preference of $ 1,000 per share ($ 50 per depositary share)",
+        "snapshot_id": "1b4e671893d74a58",
+        "value": 50.0
+      },
+      "pretax_cost_of_debt": {
+        "figure": "4.80 %",
+        "note": "Q1 2026 USD issuance, 15-year weighted-average maturity. A current market yield would be better; team to confirm.",
+        "quote": "$ 20.0 billion US dollar-denominated notes with a weighted-average coupon rate of 4.80 %",
+        "snapshot_id": "1b4e671893d74a58",
+        "value": 0.048
+      }
+    },
+    "valuation_date": "2026-06-30"
+  },
+  "evidence": {
+    "labels": [
+      "FY2021",
+      "FY2022",
+      "FY2023",
+      "FY2024",
+      "FY2025"
+    ],
+    "period_end": "2026-06-30",
+    "ratios": {
+      "capex_intensity_ttm": 0.296954690422683,
+      "capex_intensity_ytd": 0.3508959824460582,
+      "cash_fcf_ytd": 4261000000.0,
+      "cash_fcf_ytd_prior": 24254000000.0,
+      "dna_intensity_ytd": 0.059148773139682705,
+      "equity_gains_share_of_net_income_ytd": 0.7778521608275972,
+      "operating_margin_ttm": 0.331103963971238,
+      "operating_margin_ytd": 0.3503212998275952,
+      "revenue_growth_ytd": 0.23052362023336292
+    },
+    "rows": {
+      "buybacks": {
+        "history": {
+          "FY2021": 50274000000.0,
+          "FY2022": 59296000000.0,
+          "FY2023": 61504000000.0,
+          "FY2024": 62222000000.0,
+          "FY2025": 45709000000.0
+        },
+        "name": "Buybacks",
+        "ttm": 17403000000.0,
+        "ytd": 0.0,
+        "ytd_prior": 28306000000.0
+      },
+      "capex": {
+        "history": {
+          "FY2021": 24640000000.0,
+          "FY2022": 31485000000.0,
+          "FY2023": 32251000000.0,
+          "FY2024": 52535000000.0,
+          "FY2025": 91447000000.0
+        },
+        "name": "Capex",
+        "ttm": 132402000000.0,
+        "ytd": 80598000000.0,
+        "ytd_prior": 39643000000.0
+      },
+      "cfo": {
+        "history": {
+          "FY2021": 91652000000.0,
+          "FY2022": 91495000000.0,
+          "FY2023": 101746000000.0,
+          "FY2024": 125299000000.0,
+          "FY2025": 164713000000.0
+        },
+        "name": "Operating cash flow",
+        "ttm": 185675000000.0,
+        "ytd": 84859000000.0,
+        "ytd_prior": 63897000000.0
+      },
+      "dna": {
+        "history": {
+          "FY2021": 10273000000.0,
+          "FY2022": 13475000000.0,
+          "FY2023": 11946000000.0,
+          "FY2024": 15311000000.0,
+          "FY2025": 21136000000.0
+        },
+        "name": "Depreciation",
+        "ttm": 25237000000.0,
+        "ytd": 13586000000.0,
+        "ytd_prior": 9485000000.0
+      },
+      "equity_securities_gain": {
+        "history": {
+          "FY2021": 12380000000.0,
+          "FY2022": -3455000000.0,
+          "FY2023": 392000000.0,
+          "FY2024": 3714000000.0,
+          "FY2025": 24080000000.0
+        },
+        "name": "Gains on equity securities",
+        "ttm": 148982000000.0,
+        "ytd": 135946000000.0,
+        "ytd_prior": 11044000000.0
+      },
+      "net_income": {
+        "history": {
+          "FY2021": 76033000000.0,
+          "FY2022": 59972000000.0,
+          "FY2023": 73795000000.0,
+          "FY2024": 100118000000.0,
+          "FY2025": 132170000000.0
+        },
+        "name": "Net income",
+        "ttm": 244205000000.0,
+        "ytd": 174771000000.0,
+        "ytd_prior": 62736000000.0
+      },
+      "operating_income": {
+        "history": {
+          "FY2021": 78714000000.0,
+          "FY2022": 74842000000.0,
+          "FY2023": 84293000000.0,
+          "FY2024": 112390000000.0,
+          "FY2025": 129039000000.0
+        },
+        "name": "Operating income",
+        "ttm": 147628000000.0,
+        "ytd": 80466000000.0,
+        "ytd_prior": 61877000000.0
+      },
+      "revenue": {
+        "history": {
+          "FY2021": 257637000000.0,
+          "FY2022": 282836000000.0,
+          "FY2023": 307394000000.0,
+          "FY2024": 350018000000.0,
+          "FY2025": 402836000000.0
+        },
+        "name": "Revenue",
+        "ttm": 445866000000.0,
+        "ytd": 229692000000.0,
+        "ytd_prior": 186662000000.0
+      },
+      "sbc": {
+        "history": {
+          "FY2021": 15376000000.0,
+          "FY2022": 19362000000.0,
+          "FY2023": 22460000000.0,
+          "FY2024": 22785000000.0,
+          "FY2025": 24953000000.0
+        },
+        "name": "SBC",
+        "ttm": 28147000000.0,
+        "ytd": 14708000000.0,
+        "ytd_prior": 11514000000.0
+      }
+    }
+  },
+  "grids": {
+    "growth_x_margin": {
+      "values": [
+        [
+          104.74295169618877,
+          113.28685226082465,
+          122.49376624047314,
+          132.40146662800407,
+          143.04913710386717,
+          154.4773979512315,
+          166.7283319711249,
+          179.84551039757454,
+          193.87401881274536,
+          208.86048306208053,
+          224.85309516944096,
+          241.90163925224482
+        ],
+        [
+          113.28903674434204,
+          122.60483182156018,
+          132.64070319828346,
+          143.43760904755558,
+          155.03803608343142,
+          167.48602763054447,
+          180.82721169367423,
+          195.10882902731475,
+          210.37976120524036,
+          226.69055869007516,
+          244.09346890285948,
+          262.6424642926179
+        ],
+        [
+          121.83512179249533,
+          131.92281138229575,
+          142.78764015609383,
+          154.47375146710715,
+          167.02693506299568,
+          180.4946573098575,
+          194.92609141622367,
+          210.37214765705485,
+          226.8855035977354,
+          244.52063431806982,
+          263.333842636278,
+          283.38328933299084
+        ],
+        [
+          130.3812068406486,
+          141.24079094303124,
+          152.9345771139041,
+          165.5098938866586,
+          179.01583404255987,
+          193.50328698917045,
+          209.02497113877297,
+          225.63546628679498,
+          243.39124599023035,
+          262.35070994606434,
+          282.5742163696965,
+          304.12411437336374
+        ],
+        [
+          138.92729188880185,
+          150.55877050376677,
+          163.08151407171448,
+          176.5460363062101,
+          191.00473302212416,
+          206.51191666848345,
+          223.12385086132238,
+          240.8987849165351,
+          259.89698838272534,
+          280.18078557405903,
+          301.81459010311505,
+          324.8649394137367
+        ],
+        [
+          147.47337693695513,
+          159.87675006450237,
+          173.2284510295248,
+          187.5821787257617,
+          202.99363200168844,
+          219.52054634779645,
+          237.22273058387177,
+          256.16210354627526,
+          276.40273077522033,
+          298.0108612020537,
+          321.05496383653355,
+          345.60576445410965
+        ],
+        [
+          156.0194619851084,
+          169.19472962523787,
+          183.37538798733513,
+          198.6183211453132,
+          214.98253098125267,
+          232.5291760271094,
+          251.32161030642112,
+          271.4254221760154,
+          292.9084731677153,
+          315.84093683004824,
+          340.29533756995204,
+          366.3465894944826
+        ],
+        [
+          164.56554703326168,
+          178.5127091859734,
+          193.52232494514547,
+          209.65446356486467,
+          226.97142996081686,
+          245.53780570642243,
+          265.42049002897045,
+          286.68874080575546,
+          309.4142155602103,
+          333.6710124580429,
+          359.5357113033706,
+          387.08741453485555
+        ],
+        [
+          173.11163208141494,
+          187.83068874670894,
+          203.66926190295587,
+          220.6906059844162,
+          238.96032894038117,
+          258.5464353857354,
+          279.51936975151983,
+          301.95205943549564,
+          325.9199579527053,
+          351.50108808603744,
+          378.77608503678914,
+          407.8282395752286
+        ],
+        [
+          181.65771712956823,
+          197.14866830744447,
+          213.81619886076615,
+          231.7267484039677,
+          250.94922791994537,
+          271.5550650650484,
+          293.6182494740692,
+          317.2153780652357,
+          342.42570034520037,
+          369.3311637140322,
+          398.0164587702077,
+          428.5690646156016
+        ]
+      ],
+      "x": "growth (all forecast years)",
+      "xs": [
+        0.04,
+        0.06,
+        0.08,
+        0.1,
+        0.12,
+        0.14,
+        0.16,
+        0.18,
+        0.2,
+        0.22,
+        0.24,
+        0.26
+      ],
+      "y": "operating margin (forecast and terminal)",
+      "ys": [
+        0.24,
+        0.26,
+        0.28,
+        0.3,
+        0.32,
+        0.34,
+        0.36,
+        0.38,
+        0.4,
+        0.42
+      ]
+    },
+    "wacc_x_terminal_growth": {
+      "values": [
+        [
+          223.24869697700575,
+          205.82337594168325,
+          190.91686249327958,
+          178.02474986164563,
+          166.76875039054025,
+          156.85960112564248,
+          148.07233422684098,
+          140.22935674238664,
+          133.1886064675063,
+          126.83509185863731
+        ],
+        [
+          235.0611698819776,
+          215.31497197508872,
+          198.63581754537466,
+          184.36586074289005,
+          172.0226977038599,
+          161.24454041699508,
+          151.7547410083542,
+          143.33814128123572,
+          135.82489083752472,
+          129.07911977637295
+        ],
+        [
+          249.17950956974312,
+          226.4818977271586,
+          207.5960028528022,
+          191.64160292154517,
+          177.98998318309216,
+          166.18009993899696,
+          155.86618291960028,
+          146.78383095439014,
+          138.72740909887585,
+          131.53458352294192
+        ],
+        [
+          266.37233830123364,
+          239.8267521134923,
+          218.13593575792552,
+          200.0856342219638,
+          184.83522332806308,
+          171.78426974107308,
+          160.4924669865259,
+          150.62959547453215,
+          141.94314370297144,
+          134.23672240314994
+        ],
+        [
+          287.79258946784586,
+          256.07551134551096,
+          230.72954054005334,
+          210.01657895008128,
+          192.77790680520715,
+          178.2113445032404,
+          165.74391652820515,
+          154.9554498110593,
+          145.53082271407595,
+          137.22906732293316
+        ],
+        [
+          315.2520155417749,
+          276.3171397403465,
+          246.0613744915205,
+          221.88051113420735,
+          202.11733634148084,
+          185.66705046552187,
+          171.76480050035045,
+          159.86427035319696,
+          149.56483501359128,
+          140.566031914712
+        ]
+      ],
+      "x": "WACC",
+      "xs": [
+        0.075,
+        0.08,
+        0.085,
+        0.09,
+        0.095,
+        0.1,
+        0.105,
+        0.11,
+        0.115,
+        0.12
+      ],
+      "y": "terminal growth",
+      "ys": [
+        0.015,
+        0.02,
+        0.025,
+        0.03,
+        0.035,
+        0.04
+      ]
+    }
+  },
+  "market_cap": {
+    "latest": 4115908950000.0,
+    "valuation_date": 4348306020000.0
+  },
+  "nonoperating_sensitivity": [
+    {
+      "haircut": 0.0,
+      "value_per_share": 199.0038811371261
+    },
+    {
+      "haircut": 0.25,
+      "value_per_share": 196.37969956574315
+    },
+    {
+      "haircut": 0.5,
+      "value_per_share": 193.7555179943602
+    },
+    {
+      "haircut": 1.0,
+      "value_per_share": 188.50715485159432
+    }
+  ],
+  "operating_nwc": {
+    "label": "operating NWC",
+    "source": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/R3.htm: + Accounts receivable, net 62,886m + Other current assets 16,309m - Accounts payable 12,200m - Accrued compensation and benefits 17,546m - Accrued expenses and other current liabilities 55,557m - Accrued revenue share 10,864m - Deferred revenue 6,578m + debt_lt_current 1,996m (financing item inside a subtracted line) + finance_lease_liability_current 441m (financing item inside a subtracted line)",
+    "value": -21113000000.0
+  },
+  "prices": {
+    "latest": {
+      "GOOG": {
+        "close": 334.98,
+        "date": "2026-09-23",
+        "snapshot_id": "e3981f87a22344b5",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOG/historical?assetclass=stocks&fromdate=2026-09-13&limit=400",
+        "symbol": "GOOG"
+      },
+      "GOOGL": {
+        "close": 337.83,
+        "date": "2026-09-23",
+        "snapshot_id": "7535bace5e1c8d66",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOGL/historical?assetclass=stocks&fromdate=2026-09-13&limit=400",
+        "symbol": "GOOGL"
+      },
+      "GOOGM": {
+        "close": 48.25,
+        "date": "2026-09-23",
+        "snapshot_id": "82d3e3afd98872c0",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOGM/historical?assetclass=stocks&fromdate=2026-09-13&limit=400",
+        "symbol": "GOOGM"
+      },
+      "GOOGN": {
+        "close": 48.0,
+        "date": "2026-09-23",
+        "snapshot_id": "a846896587784fe4",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOGN/historical?assetclass=stocks&fromdate=2026-09-13&limit=400",
+        "symbol": "GOOGN"
+      }
+    },
+    "risk_free": {
+      "date": "2026-06-30",
+      "series": "DGS10",
+      "snapshot_id": "970b700eefd5ace6",
+      "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10&cosd=2026-06-20&coed=2026-06-30",
+      "value": 0.0444
+    },
+    "valuation_date": {
+      "GOOG": {
+        "close": 353.33,
+        "date": "2026-06-30",
+        "snapshot_id": "cdfad4cbc6e4e67e",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOG/historical?assetclass=stocks&fromdate=2026-06-20&limit=400",
+        "symbol": "GOOG"
+      },
+      "GOOGL": {
+        "close": 357.37,
+        "date": "2026-06-30",
+        "snapshot_id": "28470d524a15e6f5",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOGL/historical?assetclass=stocks&fromdate=2026-06-20&limit=400",
+        "symbol": "GOOGL"
+      },
+      "GOOGM": {
+        "close": 50.89,
+        "date": "2026-06-30",
+        "snapshot_id": "91b8e9866e7cca16",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOGM/historical?assetclass=stocks&fromdate=2026-06-20&limit=400",
+        "symbol": "GOOGM"
+      },
+      "GOOGN": {
+        "close": 50.3,
+        "date": "2026-06-30",
+        "snapshot_id": "a14042e293aec25f",
+        "source_url": "https://api.nasdaq.com/api/quote/GOOGN/historical?assetclass=stocks&fromdate=2026-06-20&limit=400",
+        "symbol": "GOOGN"
+      }
+    }
+  },
+  "problems": [],
+  "reverse": {
+    "latest": {
+      "growth": {
+        "grid": 241,
+        "held_fixed": {
+          "operating_margin": [
+            0.33,
+            0.32,
+            0.32,
+            0.32,
+            0.32
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_growth": 0.03,
+          "terminal_margin": 0.32,
+          "terminal_roic": 0.2,
+          "wacc": 0.09032894747406298
+        },
+        "hi": 0.6,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": -0.1,
+        "monotonic": true,
+        "price": 337.83,
+        "roots": [
+          0.2705893656682352
+        ],
+        "status": "unique",
+        "variable": "growth",
+        "xtol": 1e-10
+      },
+      "margin": {
+        "grid": 241,
+        "held_fixed": {
+          "growth": [
+            0.2,
+            0.15,
+            0.12,
+            0.1,
+            0.08
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_growth": 0.03,
+          "terminal_roic": 0.2,
+          "wacc": 0.09032894747406298
+        },
+        "hi": 0.8,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": 0.0,
+        "monotonic": true,
+        "price": 337.83,
+        "roots": [
+          0.5407260331393701
+        ],
+        "status": "unique",
+        "variable": "margin",
+        "xtol": 1e-10
+      },
+      "terminal_growth": {
+        "grid": 241,
+        "held_fixed": {
+          "growth": [
+            0.2,
+            0.15,
+            0.12,
+            0.1,
+            0.08
+          ],
+          "operating_margin": [
+            0.33,
+            0.32,
+            0.32,
+            0.32,
+            0.32
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_margin": 0.32,
+          "terminal_roic": 0.2,
+          "wacc": 0.09032894747406298
+        },
+        "hi": 0.045,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": -0.03,
+        "monotonic": true,
+        "price": 337.83,
+        "roots": [],
+        "status": "none",
+        "variable": "terminal_growth",
+        "xtol": 1e-10
+      },
+      "wacc": {
+        "grid": 241,
+        "held_fixed": {
+          "growth": [
+            0.2,
+            0.15,
+            0.12,
+            0.1,
+            0.08
+          ],
+          "operating_margin": [
+            0.33,
+            0.32,
+            0.32,
+            0.32,
+            0.32
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_growth": 0.03,
+          "terminal_margin": 0.32,
+          "terminal_roic": 0.2
+        },
+        "hi": 0.2,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": 0.04,
+        "monotonic": true,
+        "price": 337.83,
+        "roots": [
+          0.0654688969351293
+        ],
+        "status": "unique",
+        "variable": "wacc",
+        "xtol": 1e-10
+      }
+    },
+    "valuation_date": {
+      "growth": {
+        "grid": 241,
+        "held_fixed": {
+          "operating_margin": [
+            0.33,
+            0.32,
+            0.32,
+            0.32,
+            0.32
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_growth": 0.03,
+          "terminal_margin": 0.32,
+          "terminal_roic": 0.2,
+          "wacc": 0.09032894747406298
+        },
+        "hi": 0.6,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": -0.1,
+        "monotonic": true,
+        "price": 357.37,
+        "roots": [
+          0.2861108995724156
+        ],
+        "status": "unique",
+        "variable": "growth",
+        "xtol": 1e-10
+      },
+      "margin": {
+        "grid": 241,
+        "held_fixed": {
+          "growth": [
+            0.2,
+            0.15,
+            0.12,
+            0.1,
+            0.08
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_growth": 0.03,
+          "terminal_roic": 0.2,
+          "wacc": 0.09032894747406298
+        },
+        "hi": 0.8,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": 0.0,
+        "monotonic": true,
+        "price": 357.37,
+        "roots": [
+          0.5717590168912731
+        ],
+        "status": "unique",
+        "variable": "margin",
+        "xtol": 1e-10
+      },
+      "terminal_growth": {
+        "grid": 241,
+        "held_fixed": {
+          "growth": [
+            0.2,
+            0.15,
+            0.12,
+            0.1,
+            0.08
+          ],
+          "operating_margin": [
+            0.33,
+            0.32,
+            0.32,
+            0.32,
+            0.32
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_margin": 0.32,
+          "terminal_roic": 0.2,
+          "wacc": 0.09032894747406298
+        },
+        "hi": 0.045,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": -0.03,
+        "monotonic": true,
+        "price": 357.37,
+        "roots": [],
+        "status": "none",
+        "variable": "terminal_growth",
+        "xtol": 1e-10
+      },
+      "wacc": {
+        "grid": 241,
+        "held_fixed": {
+          "growth": [
+            0.2,
+            0.15,
+            0.12,
+            0.1,
+            0.08
+          ],
+          "operating_margin": [
+            0.33,
+            0.32,
+            0.32,
+            0.32,
+            0.32
+          ],
+          "reinvestment": {
+            "base_nwc": -21113000000.0,
+            "capex_pct": [
+              0.33,
+              0.3,
+              0.25,
+              0.2,
+              0.17
+            ],
+            "dna_pct": [
+              0.065,
+              0.09,
+              0.11,
+              0.12,
+              0.125
+            ],
+            "nwc_pct": -0.05241090667169766
+          },
+          "tax_rate": 0.17,
+          "terminal_growth": 0.03,
+          "terminal_margin": 0.32,
+          "terminal_roic": 0.2
+        },
+        "hi": 0.2,
+        "invalid_points": 0,
+        "label": "assumptions consistent with price under this model",
+        "lo": 0.04,
+        "monotonic": true,
+        "price": 357.37,
+        "roots": [
+          0.06352915247920272
+        ],
+        "status": "unique",
+        "variable": "wacc",
+        "xtol": 1e-10
+      }
+    }
+  },
+  "scenarios": {
+    "adverse": {
+      "enterprise_value": 1411632298379.519,
+      "equity_value": 1663563298379.519,
+      "flags": [
+        "92% of operating EV is terminal value: the result mostly reflects terminal assumptions"
+      ],
+      "inputs": {
+        "base_revenue": 402836000000.0,
+        "bridge": {
+          "debt": 102754000000.0,
+          "diluted_shares": 12524000000.0,
+          "excess_cash": 242474000000.0,
+          "nonoperating_assets": 131461000000.0,
+          "other_senior_claims": 19250000000.0
+        },
+        "growth": [
+          0.16,
+          0.1,
+          0.07,
+          0.06,
+          0.05
+        ],
+        "interest_expense": null,
+        "net_borrowing": null,
+        "operating_margin": [
+          0.31,
+          0.29,
+          0.28,
+          0.28,
+          0.28
+        ],
+        "reinvestment": {
+          "base_nwc": -21113000000.0,
+          "capex_pct": [
+            0.36,
+            0.34,
+            0.3,
+            0.25,
+            0.21
+          ],
+          "dna_pct": [
+            0.065,
+            0.09,
+            0.11,
+            0.12,
+            0.125
+          ],
+          "method": "Explicit",
+          "nwc_pct": -0.05241090667169766
+        },
+        "stub": 0.5041095890410959,
+        "tax_rate": 0.17,
+        "terminal_growth": 0.03,
+        "terminal_margin": 0.28,
+        "terminal_roic": 0.14,
+        "terminal_tax_rate": null,
+        "terminal_wacc": null,
+        "wacc": 0.09032894747406298
+      },
+      "pv_terminal": 1292727101340.9673,
+      "reinvestment_rate": 0.21428571428571425,
+      "rows": [
+        {
+          "capex": 168224313599.99997,
+          "delta_nwc": -3378079999.999996,
+          "discount_factor": 0.9573414935251684,
+          "dna": 30373834399.999996,
+          "ebit": 144859825599.99997,
+          "fcff": -14238743952.0,
+          "fcff_counted": -7177887362.10411,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 134472399199.99997,
+          "nopat": 120233655247.99997,
+          "pv": -6871689407.592179,
+          "revenue": 467289759999.99994,
+          "taxes": 24626170351.999996,
+          "year": 1
+        },
+        {
+          "capex": 174766370240.0,
+          "delta_nwc": -2449108000.000004,
+          "discount_factor": 0.878029970444256,
+          "dna": 46261686240.0,
+          "ebit": 149065433440.0,
+          "fcff": -2331266244.800003,
+          "fcff_counted": -2331266244.800003,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 126055576000.0,
+          "nopat": 123724309755.2,
+          "pv": -2046921632.0194383,
+          "revenue": 514018736000.0,
+          "taxes": 25341123684.800003,
+          "year": 2
+        },
+        {
+          "capex": 165000014256.0,
+          "delta_nwc": -1885813160.0,
+          "discount_factor": 0.8052890574705601,
+          "dna": 60500005227.2,
+          "ebit": 154000013305.6,
+          "fcff": 25205815174.848007,
+          "fcff_counted": 25205815174.848007,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 102614195868.8,
+          "nopat": 127820011043.64801,
+          "pv": 20297967144.930492,
+          "revenue": 550000047520.0,
+          "taxes": 26180002261.952003,
+          "year": 3
+        },
+        {
+          "capex": 145750012592.80002,
+          "delta_nwc": -1729560069.6000023,
+          "discount_factor": 0.738574408517863,
+          "dna": 69960006044.544,
+          "ebit": 163240014103.93604,
+          "fcff": 61428765227.6109,
+          "fcff_counted": 61428765227.6109,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 74060446478.656,
+          "nopat": 135489211706.2669,
+          "pv": 45369713943.96539,
+          "revenue": 583000050371.2001,
+          "taxes": 27750802397.66913,
+          "year": 4
+        },
+        {
+          "capex": 128551511106.84962,
+          "delta_nwc": -1527778061.4800034,
+          "discount_factor": 0.6773867741738853,
+          "dna": 76518756611.22002,
+          "ebit": 171402014809.13284,
+          "fcff": 91758695857.43066,
+          "fcff_counted": 91758695857.43066,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 50504976434.149605,
+          "nopat": 142263672291.58026,
+          "pv": 62156126989.26761,
+          "revenue": 612150052889.7601,
+          "taxes": 29138342517.552586,
+          "year": 5
+        }
+      ],
+      "terminal_fcff": 115131957647.40034,
+      "terminal_nopat": 146531582460.3277,
+      "terminal_share": 0.915767585386755,
+      "terminal_value": 1908403220475.5212,
+      "value_per_share": 132.8300302123538
+    },
+    "base": {
+      "enterprise_value": 2240393607361.367,
+      "equity_value": 2492324607361.367,
+      "flags": [
+        "86% of operating EV is terminal value: the result mostly reflects terminal assumptions"
+      ],
+      "inputs": {
+        "base_revenue": 402836000000.0,
+        "bridge": {
+          "debt": 102754000000.0,
+          "diluted_shares": 12524000000.0,
+          "excess_cash": 242474000000.0,
+          "nonoperating_assets": 131461000000.0,
+          "other_senior_claims": 19250000000.0
+        },
+        "growth": [
+          0.2,
+          0.15,
+          0.12,
+          0.1,
+          0.08
+        ],
+        "interest_expense": null,
+        "net_borrowing": null,
+        "operating_margin": [
+          0.33,
+          0.32,
+          0.32,
+          0.32,
+          0.32
+        ],
+        "reinvestment": {
+          "base_nwc": -21113000000.0,
+          "capex_pct": [
+            0.33,
+            0.3,
+            0.25,
+            0.2,
+            0.17
+          ],
+          "dna_pct": [
+            0.065,
+            0.09,
+            0.11,
+            0.12,
+            0.125
+          ],
+          "method": "Explicit",
+          "nwc_pct": -0.05241090667169766
+        },
+        "stub": 0.5041095890410959,
+        "tax_rate": 0.17,
+        "terminal_growth": 0.03,
+        "terminal_margin": 0.32,
+        "terminal_roic": 0.2,
+        "terminal_tax_rate": null,
+        "terminal_wacc": null,
+        "wacc": 0.09032894747406298
+      },
+      "pv_terminal": 1931243389353.901,
+      "reinvestment_rate": 0.15,
+      "rows": [
+        {
+          "capex": 159523056000.0,
+          "delta_nwc": -4222600000.0,
+          "discount_factor": 0.9573414935251684,
+          "dna": 31421208000.0,
+          "ebit": 159523056000.0,
+          "fcff": 8524888480.0,
+          "fcff_counted": 4297478028.2739725,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 123879248000.0,
+          "nopat": 132404136480.0,
+          "pv": 4114154033.9794006,
+          "revenue": 483403200000.0,
+          "taxes": 27118919520.000004,
+          "year": 1
+        },
+        {
+          "capex": 166774104000.0,
+          "delta_nwc": -3800340000.0,
+          "discount_factor": 0.878029970444256,
+          "dna": 50032231200.0,
+          "ebit": 177892377600.0,
+          "fcff": 34709140608.0,
+          "fcff_counted": 34709140608.0,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 112941532800.0,
+          "nopat": 147650673408.0,
+          "pv": 30475665702.187767,
+          "revenue": 555913680000.0,
+          "taxes": 30241704192.000004,
+          "year": 2
+        },
+        {
+          "capex": 155655830400.0,
+          "delta_nwc": -3496312800.0,
+          "discount_factor": 0.8052890574705601,
+          "dna": 68488565376.0,
+          "ebit": 199239462912.0,
+          "fcff": 81697801992.95999,
+          "fcff_counted": 81697801992.95999,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 83670952224.0,
+          "nopat": 165368754216.96,
+          "pv": 65790345964.3272,
+          "revenue": 622623321600.0,
+          "taxes": 33870708695.04,
+          "year": 3
+        },
+        {
+          "capex": 136977130752.0,
+          "delta_nwc": -3263225280.0,
+          "discount_factor": 0.738574408517863,
+          "dna": 82186278451.2,
+          "ebit": 219163409203.2,
+          "fcff": 130378002617.856,
+          "fcff_counted": 130378002617.856,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 51527627020.8,
+          "nopat": 181905629638.656,
+          "pv": 96293856167.2234,
+          "revenue": 684885653760.0,
+          "taxes": 37257779564.54401,
+          "year": 4
+        },
+        {
+          "capex": 125745006030.33601,
+          "delta_nwc": -2871638246.4000015,
+          "discount_factor": 0.6773867741738853,
+          "dna": 92459563257.6,
+          "ebit": 236696481939.45602,
+          "fcff": 166044275483.4125,
+          "fcff_counted": 166044275483.4125,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 30413804526.336006,
+          "nopat": 196458080009.7485,
+          "pv": 112476196139.74873,
+          "revenue": 739676506060.8,
+          "taxes": 40238401929.70753,
+          "year": 5
+        }
+      ],
+      "terminal_fcff": 171999049048.5348,
+      "terminal_nopat": 202351822410.04092,
+      "terminal_share": 0.8620107569528511,
+      "terminal_value": 2851020219149.0537,
+      "value_per_share": 199.0038811371261
+    },
+    "favorable": {
+      "enterprise_value": 3070718142816.0933,
+      "equity_value": 3322649142816.0933,
+      "flags": [
+        "83% of operating EV is terminal value: the result mostly reflects terminal assumptions"
+      ],
+      "inputs": {
+        "base_revenue": 402836000000.0,
+        "bridge": {
+          "debt": 102754000000.0,
+          "diluted_shares": 12524000000.0,
+          "excess_cash": 242474000000.0,
+          "nonoperating_assets": 131461000000.0,
+          "other_senior_claims": 19250000000.0
+        },
+        "growth": [
+          0.23,
+          0.19,
+          0.16,
+          0.13,
+          0.1
+        ],
+        "interest_expense": null,
+        "net_borrowing": null,
+        "operating_margin": [
+          0.35,
+          0.35,
+          0.35,
+          0.35,
+          0.35
+        ],
+        "reinvestment": {
+          "base_nwc": -21113000000.0,
+          "capex_pct": [
+            0.3,
+            0.24,
+            0.19,
+            0.16,
+            0.14
+          ],
+          "dna_pct": [
+            0.065,
+            0.09,
+            0.11,
+            0.12,
+            0.125
+          ],
+          "method": "Explicit",
+          "nwc_pct": -0.05241090667169766
+        },
+        "stub": 0.5041095890410959,
+        "tax_rate": 0.17,
+        "terminal_growth": 0.03,
+        "terminal_margin": 0.35,
+        "terminal_roic": 0.28,
+        "terminal_tax_rate": null,
+        "terminal_wacc": null,
+        "wacc": 0.09032894747406298
+      },
+      "pv_terminal": 2550267690400.419,
+      "reinvestment_rate": 0.10714285714285712,
+      "rows": [
+        {
+          "capex": 148646484000.0,
+          "delta_nwc": -4855990000.0,
+          "discount_factor": 0.9573414935251684,
+          "dna": 32206738200.0,
+          "ebit": 173420898000.0,
+          "fcff": 32355589540.0,
+          "fcff_counted": 16310762946.191782,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 111583755800.0,
+          "nopat": 143939345340.0,
+          "pv": 15614970159.442217,
+          "revenue": 495488280000.0,
+          "taxes": 29481552660.000004,
+          "year": 1
+        },
+        {
+          "capex": 141511452768.0,
+          "delta_nwc": -4934108100.0,
+          "discount_factor": 0.878029970444256,
+          "dna": 53066794788.0,
+          "ebit": 206370868620.0,
+          "fcff": 87777271074.6,
+          "fcff_counted": 87777271074.6,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 83510549880.0,
+          "nopat": 171287820954.6,
+          "pv": 77071074727.30849,
+          "revenue": 589631053200.0,
+          "taxes": 35083047665.4,
+          "year": 2
+        },
+        {
+          "capex": 129954684125.28,
+          "delta_nwc": -4944495696.0,
+          "discount_factor": 0.8052890574705601,
+          "dna": 75236922388.32,
+          "ebit": 239390207599.19998,
+          "fcff": 148920606266.376,
+          "fcff_counted": 148920606266.376,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 49773266040.95999,
+          "nopat": 198693872307.336,
+          "pv": 119924134658.19432,
+          "revenue": 683972021712.0,
+          "taxes": 40696335291.864,
+          "year": 3
+        },
+        {
+          "capex": 123662141525.52959,
+          "delta_nwc": -4660187193.479996,
+          "discount_factor": 0.738574408517863,
+          "dna": 92746606144.14719,
+          "ebit": 270510934587.09595,
+          "fcff": 198268727519.38724,
+          "fcff_counted": 198268727519.38724,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 26255348187.902405,
+          "nopat": 224524075707.28964,
+          "pv": 146436208155.2208,
+          "revenue": 772888384534.5599,
+          "taxes": 45986858879.80631,
+          "year": 4
+        },
+        {
+          "capex": 119024811218.32225,
+          "delta_nwc": -4050778098.9480057,
+          "discount_factor": 0.6773867741738853,
+          "dna": 106272152873.502,
+          "ebit": 297562028045.8056,
+          "fcff": 238274603032.1464,
+          "fcff_counted": 238274603032.1464,
+          "levered_fcf_memo": null,
+          "net_reinvestment": 8701880245.872246,
+          "nopat": 246976483278.01865,
+          "pv": 161404064715.5087,
+          "revenue": 850177222988.016,
+          "taxes": 50585544767.78696,
+          "year": 5
+        }
+      ],
+      "terminal_fcff": 227130158728.89215,
+      "terminal_nopat": 254385777776.3592,
+      "terminal_share": 0.8305118124783736,
+      "terminal_value": 3764861948346.463,
+      "value_per_share": 265.3025505282732
+    }
+  },
+  "shares": {
+    "outstanding": {
+      "label": "shares_outstanding",
+      "source": "0001652044-26-000071 us-gaap:CommonStockSharesOutstanding at 2026-06-30",
+      "value": 12230000000.0
+    },
+    "unvested_rsus": {
+      "label": "unvested_rsus",
+      "source": "0001652044-26-000071 us-gaap:ShareBasedCompensationArrangementByShareBasedPaymentAwardEquityInstrumentsOtherThanOptionsNonvestedNumber at 2026-06-30",
+      "value": 294000000.0
+    }
+  },
+  "stub": 0.5041095890410959,
+  "ticker": "GOOGL",
+  "valuation_date": "2026-06-30",
+  "wacc": {
+    "after_tax_cost_of_debt": 0.03984,
+    "cost_of_equity": 0.09165000000000001,
+    "inputs": {
+      "beta": 1.05,
+      "cost_of_preferred": 0.061764996541160196,
+      "debt_value": 102754000000.0,
+      "equity_risk_premium": 0.045,
+      "equity_value": 4348306020000.0,
+      "preferred_value": 19479075000.0,
+      "pretax_cost_of_debt": 0.048,
+      "risk_free": 0.0444,
+      "tax_rate": 0.17
+    },
+    "wacc": 0.09032894747406298,
+    "weights": {
+      "debt": 0.022984700014126596,
+      "equity": 0.972658090578671,
+      "preferred": 0.004357209407202377
+    }
+  }
+}

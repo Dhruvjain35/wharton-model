@@ -1,0 +1,29 @@
+severity,metric,fiscal_label,kind,message
+info,revenue,,tag-switch,"Revenue mixes tags (FY2021=Revenues, FY2022=RevenueFromContractWithCustomerExcludingAssessedTax, FY2023=Revenues, FY2024=Revenues, FY2025=Revenues); values agree on all 6 overlapping periods"
+info,gross_profit,FY2021,missing,Gross profit (as reported) FY2021: not found under any mapped tag (alternative presentation; expected for some filers)
+info,gross_profit,FY2022,missing,Gross profit (as reported) FY2022: not found under any mapped tag (alternative presentation; expected for some filers)
+info,gross_profit,FY2023,missing,Gross profit (as reported) FY2023: not found under any mapped tag (alternative presentation; expected for some filers)
+info,gross_profit,FY2024,missing,Gross profit (as reported) FY2024: not found under any mapped tag (alternative presentation; expected for some filers)
+info,gross_profit,FY2025,missing,Gross profit (as reported) FY2025: not found under any mapped tag (alternative presentation; expected for some filers)
+info,net_income_to_common,FY2021,missing,Net income available to common (EPS numerator) FY2021: not found under any mapped tag (alternative presentation; expected for some filers)
+info,eps_basic,FY2021,restated,"Basic EPS FY2021: 0001652044-22-000019 reported 113.88, latest filing reports 5.69 (20-for-1 stock split effective 2022-07-15)"
+info,eps_diluted,FY2021,restated,"Diluted EPS FY2021: 0001652044-22-000019 reported 112.2, latest filing reports 5.61 (20-for-1 stock split effective 2022-07-15)"
+warn,shares_basic,FY2021,missing,Weighted-average basic shares FY2021: not found under any mapped tag
+warn,shares_diluted,FY2021,missing,Weighted-average diluted shares FY2021: not found under any mapped tag
+info,cash_taxes,FY2022,restated,"Income taxes paid, net FY2022: 0001652044-23-000016 reported 1.8892e+10, latest filing reports 1.8892e+10 (precision difference: one disclosure is rounded)"
+info,cash_taxes,FY2022,restated,"Income taxes paid, net FY2022: 0001652044-25-000014 reported 1.89e+10, latest filing reports 1.8892e+10 (precision difference: later disclosure is rounded)"
+info,cash_taxes,FY2023,restated,"Income taxes paid, net FY2023: 0001652044-25-000014 reported 1.92e+10, latest filing reports 1.9164e+10 (precision difference: one disclosure is rounded)"
+info,cash_taxes,FY2024,restated,"Income taxes paid, net FY2024: 0001652044-25-000014 reported 2.74e+10, latest filing reports 2.7353e+10 (precision difference: one disclosure is rounded)"
+info,debt_lt_noncurrent,FY2021,missing,"Long-term debt, noncurrent FY2021: not found under any mapped tag (alternative presentation; expected for some filers)"
+info,debt_lt_noncurrent,FY2022,missing,"Long-term debt, noncurrent FY2022: not found under any mapped tag (alternative presentation; expected for some filers)"
+warn,debt_and_finance_lease_noncurrent,FY2023,restated,"Long-term debt incl. finance leases, noncurrent FY2023: 0001652044-24-000022 reported 1.3253e+10, latest filing reports 1.187e+10; confirm the reason in the later filing"
+info,debt_and_finance_lease_noncurrent,FY2025,missing,"Long-term debt incl. finance leases, noncurrent FY2025: not found under any mapped tag (alternative presentation; expected for some filers)"
+warn,finance_lease_liability,FY2023,restated,"Finance lease liabilities FY2023: 0001652044-24-000022 reported 1.746e+09, latest filing reports 1.666e+09; confirm the reason in the later filing"
+warn,finance_lease_liability_current,FY2023,restated,"Finance lease liabilities, current FY2023: 0001652044-24-000022 reported 3.63e+08, latest filing reports 2.83e+08; confirm the reason in the later filing"
+info,shares_outstanding,FY2021,restated,"Common shares outstanding (all classes) FY2021: 0001652044-22-000019 reported 6.62121e+08, latest filing reports 1.3242e+10 (20-for-1 stock split effective 2022-07-15)"
+info,unvested_rsus,FY2021,missing,Unvested restricted stock units FY2021: not found under any mapped tag (alternative presentation; expected for some filers)
+info,unvested_rsus,FY2022,missing,Unvested restricted stock units FY2022: not found under any mapped tag (alternative presentation; expected for some filers)
+info,unvested_rsus,FY2023,missing,Unvested restricted stock units FY2023: not found under any mapped tag (alternative presentation; expected for some filers)
+info,unvested_rsus,FY2024,missing,Unvested restricted stock units FY2024: not found under any mapped tag (alternative presentation; expected for some filers)
+info,unvested_rsus,FY2025,missing,Unvested restricted stock units FY2025: not found under any mapped tag (alternative presentation; expected for some filers)
+info,dividends,FY2021,zero-attested,Dividends paid FY2021: verified not presented; set to 0

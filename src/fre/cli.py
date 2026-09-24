@@ -66,6 +66,18 @@ def _cmd_value(a):
     return 1 if v.problems else 0
 
 
+def _cmd_screen(a):
+    from .screen import write
+
+    root = Path(a.out) / a.ticker
+    runs = sorted((p for p in root.glob("*/run.json")), key=lambda p: p.stat().st_mtime)
+    if not runs:
+        print(f"no dossier run under {root}; run `fre dossier {a.ticker}` first")
+        return 1
+    out = write(runs[-1], root / "valuation" / "valuation.json", root / "review.html")
+    print(f"wrote {out} (from {runs[-1].parent.name})")
+
+
 def _cmd_review(a):
     from .engine import build
 
@@ -104,6 +116,11 @@ def main(argv=None) -> int:
     s.add_argument("ticker")
     s.add_argument("--out", default=str(ROOT / "out"))
     s.set_defaults(fn=_cmd_value)
+
+    s = sub.add_parser("screen", help="write review.html from the latest dossier run and valuation")
+    s.add_argument("ticker")
+    s.add_argument("--out", default=str(ROOT / "out"))
+    s.set_defaults(fn=_cmd_screen)
 
     s = sub.add_parser("review", help="print the review queue")
     s.add_argument("ticker")
